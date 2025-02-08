@@ -1,15 +1,19 @@
-import { Text, View } from "react-native";
+import { Stack } from 'expo-router';
+import GameScreen from './screens/GameScreen';
+import { View } from 'react-native';
+import { ThemeProvider } from './context/ThemeContext';
 
 export default function Index() {
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Text>Edit app/index.tsx to edit this screen.</Text>
-    </View>
+    <ThemeProvider>
+      <View style={{ flex: 1 }}>
+        <Stack.Screen
+          options={{
+            title: "Quranic Wordle",
+          }}
+        />
+        <GameScreen />
+      </View>
+    </ThemeProvider>
   );
 }
