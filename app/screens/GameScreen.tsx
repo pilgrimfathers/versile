@@ -12,6 +12,9 @@ import useTheme from '../context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import useColors from '../hooks/useColors';
 import { Stack } from 'expo-router';
+import useUserProgress from '../hooks/useUserProgress';
+import UserStats from '../components/UserStats';
+import HeaderLogo from '../components/HeaderLogo';
 
 const MAX_ATTEMPTS = 6;
 const INTRO_SHOWN_KEY = 'quranic_wordle_intro_shown';
@@ -37,6 +40,7 @@ function GameScreen() {
 
   const { theme, toggleTheme } = useTheme();
   const colors = useColors();
+  const { user, loading: userLoading, updateUserProgress } = useUserProgress();
 
   useEffect(() => {
     const init = async () => {
@@ -71,11 +75,8 @@ function GameScreen() {
         if (played) {
           setGameOver(true);
           setShowWordDetails(true);
-          Alert.alert(
-            'Already Played',
-            'You have already played today. Here are the word details!',
-            [{ text: 'OK' }]
-          );
+          // Also mark as played in AsyncStorage
+          await markAsPlayed();
         }
       }
     } catch (error) {
@@ -133,9 +134,11 @@ function GameScreen() {
     // Check win/lose condition
     if (currentGuess === targetWord || guesses.length + 1 >= MAX_ATTEMPTS) {
       setGameOver(true);
-      await markAsPlayed(); // Mark the game as played
+      const success = currentGuess === targetWord;
+      await updateUserProgress(currentWord.id, guesses.length + 1, success);
+      await markAsPlayed();
       
-      if (currentGuess === targetWord) {
+      if (success) {
         setShowWordDetails(true);
       } else {
         setShowGameOver(true);
@@ -376,15 +379,11 @@ function GameScreen() {
       <SafeAreaView style={styles.safeArea}>
         <Stack.Screen
           options={{
-            title: "Quranic Wordle",
+            headerTitle: () => <HeaderLogo />,
             headerStyle: {
               backgroundColor: colors.header.background[theme],
             },
             headerTintColor: colors.header.text[theme],
-            headerTitleStyle: {
-              fontWeight: 'bold',
-              fontSize: 20,
-            },
             headerRight: () => (
               <TouchableOpacity 
                 onPress={toggleTheme} 
@@ -410,15 +409,11 @@ function GameScreen() {
     <SafeAreaView style={styles.safeArea}>
       <Stack.Screen
         options={{
-          title: "Quranic Wordle",
+          headerTitle: () => <HeaderLogo />,
           headerStyle: {
             backgroundColor: colors.header.background[theme],
           },
           headerTintColor: colors.header.text[theme],
-          headerTitleStyle: {
-            fontWeight: 'bold',
-            fontSize: 20,
-          },
           headerRight: () => (
             <TouchableOpacity 
               onPress={toggleTheme} 
@@ -437,6 +432,7 @@ function GameScreen() {
         <View style={styles.contentContainer}>
           {gameOver && currentWord ? (
             <ScrollView style={styles.wordDetailsContainer}>
+              {user && <UserStats user={user} />}
               <View style={styles.headerSection}>
                 <Text style={styles.arabicText}>{currentWord.arabic_word}</Text>
                 <Text style={styles.transliteration}>{currentWord.transliteration}</Text>

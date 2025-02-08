@@ -8,17 +8,14 @@ service cloud.firestore {
       allow write: if request.auth != null && request.auth.token.admin == true;
     }
     
-    // Users collection - users can read/write their own data
+    // Users collection - allow read/write if authenticated
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if request.auth != null;
     }
     
-    // Game sessions - users can read/write their own sessions
+    // Game sessions - allow read/write if authenticated
     match /game_sessions/{sessionId} {
-      allow read, write: if request.auth != null && 
-        request.auth.uid == resource.data.user_id;
-      allow create: if request.auth != null && 
-        request.auth.uid == request.resource.data.user_id;
+      allow read, write: if request.auth != null;
     }
   }
 }

@@ -1,6 +1,6 @@
 module.exports = {
   expo: {
-    name: 'Quranic Wordle',
+    name: 'Versile',
     slug: 'quranic-wordle',
     scheme: 'quranicwordle',
     version: '1.0.0',

@@ -1,9 +1,10 @@
 import { Stack } from 'expo-router';
-
+import { useEffect, useState } from 'react';
 import { LogBox } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import useColors from './hooks/useColors';
 import useTheme from './context/ThemeContext';
+import LoadingScreen from './components/LoadingScreen';
 
 // Ignore specific warnings
 LogBox.ignoreLogs([
@@ -14,6 +15,20 @@ LogBox.ignoreLogs([
 export default function Layout() {
   const colors = useColors();
   const { theme } = useTheme();
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate loading time or wait for actual resources
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000); // Show splash screen for 2 seconds
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
   
   return (
     <SafeAreaProvider>

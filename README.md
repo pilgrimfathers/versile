@@ -1,4 +1,4 @@
-# Quranic Wordle
+# Versile
 
 A daily word game that helps users learn Quranic vocabulary through an engaging Wordle-like experience.
 

@@ -9,7 +9,7 @@ export default function Index() {
       <View style={{ flex: 1 }}>
         <Stack.Screen
           options={{
-            title: "Quranic Wordle",
+            title: "Versile",
           }}
         />
         <GameScreen />

@@ -1,8 +1,8 @@
-# Quranic Wordle App - Project Context
+# Versile App - Project Context
 
 ## Overview
 
-The Quranic Wordle App is an educational game that challenges users to guess English translations of Quranic words. Upon a correct guess, the app provides:
+The Versile App is an educational game that challenges users to guess English translations of Quranic words. Upon a correct guess, the app provides:
 
 - **Occurrences in the Quran:** Surah and ayah references with context snippets.
 - **Word Details:** Meanings, transliterations, frequency, and morphological information.
@@ -141,4 +141,4 @@ Stores user game sessions and performance.
 
 ## Conclusion
 
-This document outlines the foundational aspects of the Quranic Wordle App, detailing its objectives, features, architecture, and development considerations. It serves as a guide for the initial development phase and future iterations.
+This document outlines the foundational aspects of the Versile App, detailing its objectives, features, architecture, and development considerations. It serves as a guide for the initial development phase and future iterations.
