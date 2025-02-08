@@ -24,7 +24,7 @@ export default {
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: "./assets/images/adaptive-icon.png",
+        foregroundImage: "./assets/images/adaptive-icon.jpeg",
         backgroundColor: "#ffffff"
       },
       package: "com.versile.app",
@@ -37,11 +37,5 @@ export default {
     },
     plugins: ["expo-router"],
     owner: "pilgrimfathers",
-    updates: {
-      url: "https://u.expo.dev/8e4dbd27-e6ee-423c-9904-85ce27b80a8e"
-    },
-    runtimeVersion: {
-      policy: "appVersion"
-    }
   }
 };
