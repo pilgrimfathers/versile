@@ -5,7 +5,7 @@ import useTheme from '../context/ThemeContext';
 
 type PuzzleCellProps = {
   letter: string;
-  status: 'correct' | 'present' | 'absent';
+  status: 'correct' | 'present' | 'absent' | 'unused';
 };
 
 const PuzzleCell: React.FC<PuzzleCellProps> = ({ letter, status }) => {
@@ -43,6 +43,10 @@ const PuzzleCell: React.FC<PuzzleCellProps> = ({ letter, status }) => {
     absent: {
       backgroundColor: colors.absent,
       borderColor: colors.absent,
+    },
+    unused: {
+      backgroundColor: colors.surface[theme],
+      borderColor: colors.surface[theme],
     },
   });
 

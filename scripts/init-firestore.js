@@ -16,53 +16,125 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Sample Quranic words data
+// Sample 5-letter Quranic words data
 const sampleWords = [
   {
-    id: 'sabr',
-    english_translation: 'patience',
-    arabic_word: 'الصبر',
-    transliteration: 'As-Sabr',
-    meanings: ['patience', 'perseverance', 'endurance'],
+    id: 'mercy',
+    english_translation: 'mercy',
+    arabic_word: 'رحمة',
+    transliteration: 'Rahma',
+    meanings: ['mercy', 'grace', 'compassion', 'kindness'],
     occurrences: [
       {
         surah: 2,
-        ayah: 153,
-        context: 'O you who believe, seek help through patience and prayer. Indeed, Allah is with the patient.'
+        ayah: 157,
+        context: 'Those are the ones upon whom are blessings from their Lord and mercy. And it is those who are [rightly] guided.'
       },
       {
-        surah: 3,
-        ayah: 200,
-        context: 'O you who believe, persevere and endure and remain stationed and fear Allah that you may be successful.'
+        surah: 7,
+        ayah: 156,
+        context: 'My mercy encompasses all things.'
       }
     ],
-    frequency: 103,
+    frequency: 79,
     part_of_speech: 'noun',
-    morphological_info: 'root: ص ب ر',
+    morphological_info: 'root: ر ح م',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   },
   {
-    id: 'taqwa',
-    english_translation: 'piety',
-    arabic_word: 'التقوى',
-    transliteration: 'At-Taqwa',
-    meanings: ['piety', 'God-consciousness', 'righteousness'],
+    id: 'peace',
+    english_translation: 'peace',
+    arabic_word: 'سلام',
+    transliteration: 'Salam',
+    meanings: ['peace', 'security', 'safety', 'wellbeing'],
+    occurrences: [
+      {
+        surah: 6,
+        ayah: 54,
+        context: 'Peace be upon you. Your Lord has decreed upon Himself mercy.'
+      },
+      {
+        surah: 19,
+        ayah: 47,
+        context: 'Peace be upon you. I will ask forgiveness for you from my Lord.'
+      }
+    ],
+    frequency: 42,
+    part_of_speech: 'noun',
+    morphological_info: 'root: س ل م',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 'light',
+    english_translation: 'light',
+    arabic_word: 'نور',
+    transliteration: 'Noor',
+    meanings: ['light', 'illumination', 'guidance', 'clarity'],
+    occurrences: [
+      {
+        surah: 24,
+        ayah: 35,
+        context: 'Allah is the Light of the heavens and the earth.'
+      },
+      {
+        surah: 5,
+        ayah: 15,
+        context: 'There has come to you from Allah a light and a clear Book.'
+      }
+    ],
+    frequency: 43,
+    part_of_speech: 'noun',
+    morphological_info: 'root: ن و ر',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 'truth',
+    english_translation: 'truth',
+    arabic_word: 'حق',
+    transliteration: 'Haqq',
+    meanings: ['truth', 'reality', 'right', 'justice'],
     occurrences: [
       {
         surah: 2,
-        ayah: 197,
-        context: 'And take provisions, but indeed, the best provision is fear of Allah.'
+        ayah: 147,
+        context: 'The truth is from your Lord, so never be among the doubters.'
+      },
+      {
+        surah: 10,
+        ayah: 32,
+        context: 'For that is Allah, your Lord, the Truth.'
+      }
+    ],
+    frequency: 287,
+    part_of_speech: 'noun',
+    morphological_info: 'root: ح ق ق',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 'faith',
+    english_translation: 'faith',
+    arabic_word: 'إيمان',
+    transliteration: 'Iman',
+    meanings: ['faith', 'belief', 'trust', 'conviction'],
+    occurrences: [
+      {
+        surah: 3,
+        ayah: 193,
+        context: 'Our Lord, indeed we have heard a caller calling to faith.'
       },
       {
         surah: 49,
-        ayah: 13,
-        context: 'Indeed, the most noble of you in the sight of Allah is the most righteous of you.'
+        ayah: 7,
+        context: 'But Allah has endeared to you the faith and has made it pleasing in your hearts.'
       }
     ],
-    frequency: 258,
+    frequency: 45,
     part_of_speech: 'noun',
-    morphological_info: 'root: و ق ي',
+    morphological_info: 'root: ء م ن',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   }

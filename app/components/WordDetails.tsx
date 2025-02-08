@@ -20,7 +20,6 @@ const WordDetails: React.FC<WordDetailsProps> = ({ word, onClose }) => {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-      backgroundColor: colors.modal.overlay,
     },
     modalView: {
       width: CONTENT_WIDTH,
@@ -59,7 +58,7 @@ const WordDetails: React.FC<WordDetailsProps> = ({ word, onClose }) => {
       marginTop: 20,
       marginBottom: 30,
       padding: 20,
-      backgroundColor: colors.absent,
+      backgroundColor: colors.surface[theme],
       borderRadius: 15,
     },
     arabicText: {
@@ -69,7 +68,7 @@ const WordDetails: React.FC<WordDetailsProps> = ({ word, onClose }) => {
     },
     transliteration: {
       fontSize: 20,
-      color: colors.surface[theme],
+      color: colors.text[theme],
       marginBottom: 10,
     },
     englishText: {
@@ -96,13 +95,14 @@ const WordDetails: React.FC<WordDetailsProps> = ({ word, onClose }) => {
       paddingHorizontal: 15,
       paddingVertical: 8,
       borderRadius: 20,
+      margin: 4,
     },
     meaningText: {
-      color: colors.text[theme],
+      color: '#FFFFFF',
       fontSize: 16,
     },
     grammarCard: {
-      backgroundColor: colors.absent,
+      backgroundColor: colors.surface[theme],
       padding: 15,
       borderRadius: 10,
     },
@@ -124,12 +124,12 @@ const WordDetails: React.FC<WordDetailsProps> = ({ word, onClose }) => {
       borderRadius: 15,
     },
     frequencyText: {
-      color: colors.text[theme],
+      color: '#FFFFFF',
       fontSize: 14,
       fontWeight: 'bold',
     },
     occurrenceCard: {
-      backgroundColor: colors.absent,
+      backgroundColor: colors.surface[theme],
       borderRadius: 10,
       marginBottom: 10,
       overflow: 'hidden',
@@ -139,7 +139,7 @@ const WordDetails: React.FC<WordDetailsProps> = ({ word, onClose }) => {
       padding: 10,
     },
     referenceText: {
-      color: colors.text[theme],
+      color: '#FFFFFF',
       fontSize: 16,
       fontWeight: 'bold',
     },

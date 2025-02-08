@@ -163,7 +163,8 @@ function GameScreen() {
     modalContainer: {
       flex: 1,
       alignItems: 'center',
-      backgroundColor: colors.modal.background[theme],
+      justifyContent: 'center',
+      backgroundColor: colors.modal.overlay,
     },
     centeredView: {
       flex: 1,
