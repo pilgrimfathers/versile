@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Modal, Alert, Dimensions, SafeAreaView, Text, TouchableOpacity, Platform } from 'react-native';
+import { View, StyleSheet, Modal, Alert, Dimensions, SafeAreaView, Text, TouchableOpacity, Platform, ScrollView, ActivityIndicator } from 'react-native';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import PuzzleGrid from '../components/PuzzleGrid';
@@ -33,6 +33,7 @@ function GameScreen() {
   const [gameOver, setGameOver] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showGameOver, setShowGameOver] = useState(false);
+  const [isPlayedStatusLoaded, setIsPlayedStatusLoaded] = useState(false);
 
   const { theme, toggleTheme } = useTheme();
   const colors = useColors();
@@ -56,18 +57,32 @@ function GameScreen() {
   const fetchDailyWord = async () => {
     try {
       setLoading(true);
+      
+      // Check if user has already played today
+      const played = await hasPlayedToday();
       const wordsRef = collection(db, 'words');
       const querySnapshot = await getDocs(wordsRef);
       
       if (!querySnapshot.empty) {
-        // For now, just get the first word
         const wordDoc = querySnapshot.docs[0];
-        setCurrentWord({ id: wordDoc.id, ...wordDoc.data() } as QuranicWord);
+        const word = { id: wordDoc.id, ...wordDoc.data() } as QuranicWord;
+        setCurrentWord(word);
+        
+        if (played) {
+          setGameOver(true);
+          setShowWordDetails(true);
+          Alert.alert(
+            'Already Played',
+            'You have already played today. Here are the word details!',
+            [{ text: 'OK' }]
+          );
+        }
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to fetch word');
     } finally {
       setLoading(false);
+      setIsPlayedStatusLoaded(true);
     }
   };
 
@@ -87,7 +102,7 @@ function GameScreen() {
     }
   };
 
-  const submitGuess = () => {
+  const submitGuess = async () => {
     if (!currentWord) return;
     
     const targetWord = currentWord.english_translation.toLowerCase();
@@ -116,12 +131,15 @@ function GameScreen() {
     setCurrentGuess('');
 
     // Check win/lose condition
-    if (currentGuess === targetWord) {
+    if (currentGuess === targetWord || guesses.length + 1 >= MAX_ATTEMPTS) {
       setGameOver(true);
-      setShowWordDetails(true);
-    } else if (guesses.length + 1 >= MAX_ATTEMPTS) {
-      setGameOver(true);
-      setShowGameOver(true);
+      await markAsPlayed(); // Mark the game as played
+      
+      if (currentGuess === targetWord) {
+        setShowWordDetails(true);
+      } else {
+        setShowGameOver(true);
+      }
     }
   };
 
@@ -130,7 +148,27 @@ function GameScreen() {
     setShowWordDetails(true);
   };
 
-  if (!currentWord && !loading) return null;
+  const hasPlayedToday = async () => {
+    try {
+      const lastPlayed = await AsyncStorage.getItem('last_played_date');
+      if (!lastPlayed) return false;
+      
+      const today = new Date().toISOString().split('T')[0];
+      return lastPlayed === today;
+    } catch (error) {
+      console.error('Error checking last played date:', error);
+      return false;
+    }
+  };
+
+  const markAsPlayed = async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      await AsyncStorage.setItem('last_played_date', today);
+    } catch (error) {
+      console.error('Error marking as played:', error);
+    }
+  };
 
   const styles = StyleSheet.create({
     safeArea: {
@@ -233,7 +271,140 @@ function GameScreen() {
       fontSize: 16,
       fontWeight: 'bold',
     },
+    wordDetailsContainer: {
+      flex: 1,
+      padding: 20,
+    },
+    headerSection: {
+      alignItems: 'center',
+      marginBottom: 30,
+      padding: 20,
+      backgroundColor: colors.surface[theme],
+      borderRadius: 15,
+    },
+    arabicText: {
+      fontSize: 36,
+      color: colors.text[theme],
+      marginBottom: 10,
+    },
+    englishText: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: colors.correct,
+    },
+    section: {
+      marginBottom: 25,
+    },
+    sectionTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: colors.text[theme],
+      marginBottom: 15,
+    },
+    meaningsContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 10,
+    },
+    meaningChip: {
+      backgroundColor: colors.present,
+      paddingHorizontal: 15,
+      paddingVertical: 8,
+      borderRadius: 20,
+      margin: 4,
+    },
+    meaningText: {
+      color: '#FFFFFF',
+      fontSize: 16,
+    },
+    grammarCard: {
+      backgroundColor: colors.surface[theme],
+      padding: 15,
+      borderRadius: 10,
+    },
+    grammarText: {
+      color: colors.text[theme],
+      fontSize: 16,
+      marginBottom: 5,
+    },
+    frequencyHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 15,
+    },
+    frequencyBadge: {
+      backgroundColor: colors.correct,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 15,
+    },
+    frequencyText: {
+      color: '#FFFFFF',
+      fontSize: 14,
+      fontWeight: 'bold',
+    },
+    occurrenceCard: {
+      backgroundColor: colors.surface[theme],
+      borderRadius: 10,
+      marginBottom: 10,
+      overflow: 'hidden',
+    },
+    referenceContainer: {
+      backgroundColor: colors.present,
+      padding: 10,
+    },
+    referenceText: {
+      color: '#FFFFFF',
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    contextText: {
+      color: colors.text[theme],
+      fontSize: 14,
+      padding: 15,
+      fontStyle: 'italic',
+    },
+    loadingContainer: {
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
   });
+
+  if (!currentWord || loading || !isPlayedStatusLoaded) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <Stack.Screen
+          options={{
+            title: "Quranic Wordle",
+            headerStyle: {
+              backgroundColor: colors.header.background[theme],
+            },
+            headerTintColor: colors.header.text[theme],
+            headerTitleStyle: {
+              fontWeight: 'bold',
+              fontSize: 20,
+            },
+            headerRight: () => (
+              <TouchableOpacity 
+                onPress={toggleTheme} 
+                style={{ marginRight: 15 }}
+              >
+                <Ionicons 
+                  name={theme === 'light' ? 'moon' : 'sunny'} 
+                  size={24} 
+                  color={colors.header.text[theme]} 
+                />
+              </TouchableOpacity>
+            ),
+          }}
+        />
+        <View style={[styles.container, styles.loadingContainer]}>
+          <ActivityIndicator size="large" color={colors.correct} />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -264,28 +435,77 @@ function GameScreen() {
       />
       <View style={styles.container}>
         <View style={styles.contentContainer}>
-          <View style={styles.gridContainer}>
-            <PuzzleGrid
-              guesses={guesses}
-              maxAttempts={MAX_ATTEMPTS}
-              wordLength={WORD_LENGTH}
-              currentGuess={currentGuess}
-            />
-          </View>
-          
-          <View style={styles.keyboardContainer}>
-            <Keyboard
-              onKeyPress={handleKeyPress}
-              letterStates={letterStates}
-            />
-          </View>
+          {gameOver && currentWord ? (
+            <ScrollView style={styles.wordDetailsContainer}>
+              <View style={styles.headerSection}>
+                <Text style={styles.arabicText}>{currentWord.arabic_word}</Text>
+                <Text style={styles.transliteration}>{currentWord.transliteration}</Text>
+                <Text style={styles.englishText}>{currentWord.english_translation.toUpperCase()}</Text>
+              </View>
+
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Meanings</Text>
+                <View style={styles.meaningsContainer}>
+                  {currentWord.meanings.map((meaning, index) => (
+                    <View key={index} style={styles.meaningChip}>
+                      <Text style={styles.meaningText}>{meaning}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Grammar</Text>
+                <View style={styles.grammarCard}>
+                  <Text style={styles.grammarText}>Part of Speech: {currentWord.part_of_speech}</Text>
+                  <Text style={styles.grammarText}>{currentWord.morphological_info}</Text>
+                </View>
+              </View>
+
+              <View style={styles.section}>
+                <View style={styles.frequencyHeader}>
+                  <Text style={styles.sectionTitle}>Occurrences in Quran</Text>
+                  <View style={styles.frequencyBadge}>
+                    <Text style={styles.frequencyText}>{currentWord.frequency} times</Text>
+                  </View>
+                </View>
+                {currentWord.occurrences.map((occurrence, index) => (
+                  <View key={index} style={styles.occurrenceCard}>
+                    <View style={styles.referenceContainer}>
+                      <Text style={styles.referenceText}>
+                        Surah {occurrence.surah}:{occurrence.ayah}
+                      </Text>
+                    </View>
+                    <Text style={styles.contextText}>{occurrence.context}</Text>
+                  </View>
+                ))}
+              </View>
+            </ScrollView>
+          ) : (
+            <>
+              <View style={styles.gridContainer}>
+                <PuzzleGrid
+                  guesses={guesses}
+                  maxAttempts={MAX_ATTEMPTS}
+                  wordLength={WORD_LENGTH}
+                  currentGuess={currentGuess}
+                />
+              </View>
+              
+              <View style={styles.keyboardContainer}>
+                <Keyboard
+                  onKeyPress={handleKeyPress}
+                  letterStates={letterStates}
+                />
+              </View>
+            </>
+          )}
 
           <IntroModal
             visible={showIntro}
             onClose={handleIntroClose}
           />
 
-          {/* Game Over Modal */}
           <Modal
             visible={showGameOver}
             animationType="slide"
@@ -312,23 +532,6 @@ function GameScreen() {
                   <Text style={styles.detailsButtonText}>View Word Details</Text>
                 </TouchableOpacity>
               </View>
-            </View>
-          </Modal>
-
-          {/* Word Details Modal */}
-          <Modal
-            visible={showWordDetails}
-            animationType="slide"
-            transparent={true}
-            onRequestClose={() => setShowWordDetails(false)}
-          >
-            <View style={styles.modalContainer}>
-              {currentWord && (
-                <WordDetails 
-                  word={currentWord} 
-                  onClose={() => setShowWordDetails(false)}
-                />
-              )}
             </View>
           </Modal>
         </View>
