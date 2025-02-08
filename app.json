@@ -5,9 +5,14 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "versile",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "extra": {
+      "eas": {
+        "projectId": "8e4dbd27-e6ee-423c-9904-85ce27b80a8e"
+      }
+    },
     "ios": {
       "supportsTablet": true
     },

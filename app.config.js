@@ -1,8 +1,13 @@
 module.exports = {
   expo: {
+    extra: {
+      eas: {
+        projectId: "8e4dbd27-e6ee-423c-9904-85ce27b80a8e"
+      }
+    },
     name: 'Versile',
-    slug: 'quranic-wordle',
-    scheme: 'quranicwordle',
+    slug: 'versile',
+    scheme: 'versile',
     version: '1.0.0',
     newArchEnabled: true,
     orientation: 'portrait',
@@ -16,7 +21,7 @@ module.exports = {
     assetBundlePatterns: ['**/*'],
     ios: {
       supportsTablet: true,
-      bundleIdentifier: 'com.yourcompany.quranicwordle',
+      bundleIdentifier: 'com.versile.app',
       statusBar: {
         hidden: true
       }
@@ -26,7 +31,7 @@ module.exports = {
         foregroundImage: './assets/images/adaptive-icon.png',
         backgroundColor: '#ffffff'
       },
-      package: 'com.yourcompany.quranicwordle',
+      package: 'com.versile.app',
       statusBar: {
         hidden: true
       }
@@ -43,7 +48,7 @@ module.exports = {
       firebaseAppId: process.env.FIREBASE_APP_ID,
       firebaseMeasurementId: process.env.FIREBASE_MEASUREMENT_ID,
       eas: {
-        projectId: "quranic-wordle"
+        projectId: "versile"
       }
     }
   }
