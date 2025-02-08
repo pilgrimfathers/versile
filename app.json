@@ -20,7 +20,9 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.versile.app",
+      "versionCode": 1
     },
     "web": {
       "bundler": "metro",

@@ -26,7 +26,9 @@ export default {
       adaptiveIcon: {
         foregroundImage: "./assets/images/adaptive-icon.png",
         backgroundColor: "#ffffff"
-      }
+      },
+      package: "com.versile.app",
+      versionCode: 1
     },
     web: {
       bundler: "metro",
@@ -34,6 +36,12 @@ export default {
       favicon: "./assets/images/favicon.png"
     },
     plugins: ["expo-router"],
-    owner: "pilgrimfathers"
+    owner: "pilgrimfathers",
+    updates: {
+      url: "https://u.expo.dev/8e4dbd27-e6ee-423c-9904-85ce27b80a8e"
+    },
+    runtimeVersion: {
+      policy: "appVersion"
+    }
   }
 };
