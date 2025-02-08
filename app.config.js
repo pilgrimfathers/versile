@@ -28,7 +28,12 @@ export default {
         backgroundColor: "#ffffff"
       },
       package: "com.versile.app",
-      versionCode: 1
+      versionCode: 1,
+      splash: {
+        image: "./assets/images/splash-icon.png",
+        resizeMode: "contain",
+        backgroundColor: "#ffffff"
+      }
     },
     web: {
       bundler: "metro",
@@ -37,5 +42,16 @@ export default {
     },
     plugins: ["expo-router"],
     owner: "pilgrimfathers",
+    splash: {
+      image: "./assets/images/splash-icon.png",
+      resizeMode: "contain",
+      backgroundColor: "#ffffff"
+    },
+    updates: {
+      url: "https://u.expo.dev/8e4dbd27-e6ee-423c-9904-85ce27b80a8e"
+    },
+    runtimeVersion: {
+      policy: "appVersion"
+    }
   }
 };
