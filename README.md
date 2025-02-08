@@ -14,6 +14,9 @@ A daily word game that helps users learn Quranic vocabulary through an engaging 
 - Beautiful and intuitive user interface
 - Progress tracking
 - Educational insights after each game
+- Dark/Light theme support
+- Anonymous authentication
+- Cross-platform support (iOS, Android, Web)
 
 ## Tech Stack
 
@@ -21,6 +24,7 @@ A daily word game that helps users learn Quranic vocabulary through an engaging 
 - Firebase/Firestore for backend
 - TypeScript for type safety
 - Expo Router for navigation
+- AsyncStorage for local data persistence
 
 ## Prerequisites
 
@@ -29,19 +33,20 @@ A daily word game that helps users learn Quranic vocabulary through an engaging 
 - Expo CLI (`npm install -g expo-cli`)
 - Firebase account
 - Firebase CLI (`npm install -g firebase-tools`)
+- EAS CLI (`npm install -g eas-cli`) for building
 
 ## Firebase Setup
 
 1. Create a new Firebase project:
    - Go to [Firebase Console](https://console.firebase.google.com/)
    - Click "Add Project"
-   - Name your project (e.g., "quranic-wordle")
+   - Name your project (e.g., "versile")
    - Enable Google Analytics (optional)
    - Click "Create Project"
 
 2. Add a Web app to your Firebase project:
    - In the Firebase Console, click the web icon (</>)
-   - Register your app with a nickname (e.g., "quranic-wordle-web")
+   - Register your app with a nickname (e.g., "versile-web")
    - Copy the Firebase configuration object for later use
 
 3. Enable Firestore:
@@ -51,23 +56,42 @@ A daily word game that helps users learn Quranic vocabulary through an engaging 
    - Choose a location
    - Click "Enable"
 
-4. Deploy Firestore Security Rules:
-   - Login to Firebase CLI: `firebase login`
-   - Initialize Firebase in your project: `firebase init`
-   - Select Firestore when prompted
-   - Deploy rules: `firebase deploy --only firestore:rules`
+4. Enable Anonymous Authentication:
+   - In the Firebase Console, go to "Authentication"
+   - Click "Get Started"
+   - Enable "Anonymous" sign-in provider
 
-5. Initialize the database:
+5. Deploy Firestore Security Rules:
+   ```bash
+   firebase login
+   firebase init
+   firebase deploy --only firestore:rules
+   ```
+
+6. Initialize the database with sample words:
    ```bash
    node scripts/init-firestore.js
    ```
+
+## Environment Setup
+
+1. Create a `.env` file in the root directory:
+```
+EXPO_PUBLIC_FIREBASE_API_KEY=your_api_key
+EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain
+EXPO_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=your_storage_bucket
+EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+EXPO_PUBLIC_FIREBASE_APP_ID=your_app_id
+EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID=your_measurement_id
+```
 
 ## Project Setup
 
 1. Clone the repository:
 ```bash
 git clone <repository-url>
-cd quranic-wordle
+cd versile
 ```
 
 2. Install dependencies:
@@ -75,17 +99,7 @@ cd quranic-wordle
 npm install
 ```
 
-3. Create a `.env` file in the root directory with your Firebase configuration:
-```
-FIREBASE_API_KEY=your_api_key
-FIREBASE_AUTH_DOMAIN=your_auth_domain
-FIREBASE_PROJECT_ID=your_project_id
-FIREBASE_STORAGE_BUCKET=your_storage_bucket
-FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
-FIREBASE_APP_ID=your_app_id
-```
-
-4. Start the development server:
+3. Start the development server:
 ```bash
 npm start
 ```
@@ -96,13 +110,21 @@ npm start
 - `npm run android` - Run on Android emulator
 - `npm run ios` - Run on iOS simulator
 - `npm run web` - Run in web browser
+- `npm run reset-project` - Reset project cache and dependencies
 
-## Firebase Commands
+## Building
 
-- `firebase login` - Login to Firebase CLI
-- `firebase init` - Initialize Firebase in your project
-- `firebase deploy --only firestore:rules` - Deploy Firestore rules
-- `firebase serve` - Test Firebase locally
+1. Configure EAS Build:
+```bash
+eas build:configure
+```
+
+2. Create a build:
+```bash
+eas build --platform ios  # For iOS
+eas build --platform android  # For Android
+eas build --platform web  # For Web
+```
 
 ## Contributing
 
