@@ -20,8 +20,12 @@ import { STORAGE_KEYS } from '../constants/storage';
 const MAX_ATTEMPTS = 6;
 const INTRO_SHOWN_KEY = 'quranic_wordle_intro_shown';
 
-const { width: SCREEN_WIDTH, height } = Dimensions.get('window');
-const CONTENT_WIDTH = SCREEN_WIDTH * 0.75; // 75% of screen width
+const { width, height } = Dimensions.get('window');
+const CONTENT_WIDTH = Platform.OS === 'web' 
+  ? (Platform.select({
+      web: width > 768 ? width * 0.75 : width * 0.95
+    }))
+  : width * 0.95;
 
 const WORD_LENGTH = 5;
 
@@ -240,7 +244,7 @@ function GameScreen() {
       alignItems: 'center',
     },
     contentContainer: {
-      width: Platform.OS === 'web' ? CONTENT_WIDTH : SCREEN_WIDTH * 0.95,
+      width: CONTENT_WIDTH,
       flex: 1,
       paddingVertical: 10,
     },
@@ -270,7 +274,7 @@ function GameScreen() {
       backgroundColor: colors.modal.overlay,
     },
     modalView: {
-      width: Platform.OS === 'web' ? CONTENT_WIDTH : SCREEN_WIDTH * 0.9,
+      width: CONTENT_WIDTH,
       backgroundColor: colors.modal.background[theme],
       borderRadius: 15,
       padding: 20,

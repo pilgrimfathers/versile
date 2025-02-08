@@ -9,8 +9,14 @@ interface IntroModalProps {
 }
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const CONTENT_WIDTH = Platform.OS === 'web' ? SCREEN_WIDTH * 0.35 : SCREEN_WIDTH * 0.9;
-const EXAMPLE_TILE_SIZE = Platform.OS === 'web' ? 40 : Math.min(SCREEN_WIDTH / 12, 35);
+const CONTENT_WIDTH = Platform.OS === 'web'
+  ? (Platform.select({
+      web: SCREEN_WIDTH > 768 ? SCREEN_WIDTH * 0.35 : SCREEN_WIDTH * 0.95
+    }))
+  : SCREEN_WIDTH * 0.9;
+const EXAMPLE_TILE_SIZE = Platform.OS === 'web'
+  ? (SCREEN_WIDTH > 768 ? 40 : 30)
+  : Math.min(SCREEN_WIDTH / 12, 35);
 
 const IntroModal: React.FC<IntroModalProps> = ({ visible, onClose }) => {
   const { theme } = useTheme();

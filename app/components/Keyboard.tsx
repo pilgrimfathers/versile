@@ -123,9 +123,15 @@ const Keyboard: React.FC<KeyboardProps> = ({ onKeyPress, letterStates }) => {
 };
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CONTENT_WIDTH = Platform.OS === 'web' ? SCREEN_WIDTH * 0.75 : SCREEN_WIDTH * 0.95;
-const KEY_WIDTH = Platform.OS === 'web' 
-  ? (CONTENT_WIDTH - 100) / 10 
+const CONTENT_WIDTH = Platform.OS === 'web'
+  ? (Platform.select({
+      web: SCREEN_WIDTH > 768 ? SCREEN_WIDTH * 0.75 : SCREEN_WIDTH * 0.95
+    }) ?? SCREEN_WIDTH * 0.95)
+  : SCREEN_WIDTH * 0.95;
+const KEY_WIDTH = Platform.OS === 'web'
+  ? (SCREEN_WIDTH > 768 
+      ? (CONTENT_WIDTH - 100) / 10 
+      : (CONTENT_WIDTH - 40) / 10)
   : (CONTENT_WIDTH - 50) / 10;
 
 export default Keyboard; 

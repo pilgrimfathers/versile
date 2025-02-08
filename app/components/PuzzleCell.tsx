@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Platform } from 'react-native';
 import useColors from '../hooks/useColors';
 import useTheme from '../context/ThemeContext';
 
@@ -61,7 +61,11 @@ const PuzzleCell: React.FC<PuzzleCellProps> = ({ letter, status }) => {
 };
 
 const { width } = Dimensions.get('window');
-const CELL_SIZE = Math.min(width / 8, 52);
+const CELL_SIZE = Platform.OS === 'web'
+  ? (width > 768 
+      ? Math.min(width / 8, 52)
+      : Math.min(width / 7, 45))
+  : Math.min(width / 8, 52);
 const CELL_MARGIN = 4;
 
 export default PuzzleCell; 
