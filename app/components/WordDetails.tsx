@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { QuranicWord } from '../types';
 import colors from '../constants/colors';
+import useTheme from '../context/ThemeContext';
 
 interface WordDetailsProps {
   word: QuranicWord;
@@ -12,6 +13,144 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CONTENT_WIDTH = SCREEN_WIDTH * 0.75;
 
 const WordDetails: React.FC<WordDetailsProps> = ({ word, onClose }) => {
+  const { theme } = useTheme();
+
+  const styles = StyleSheet.create({
+    centeredView: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: colors.modal.overlay,
+    },
+    modalView: {
+      width: CONTENT_WIDTH,
+      maxHeight: '90%',
+      backgroundColor: colors.modal.background[theme],
+      borderRadius: 15,
+      overflow: 'hidden',
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+      elevation: 5,
+    },
+    closeButton: {
+      position: 'absolute',
+      right: 15,
+      top: 10,
+      zIndex: 1,
+    },
+    closeButtonText: {
+      fontSize: 40,
+      color: colors.text[theme],
+      lineHeight: 40,
+    },
+    scrollView: {
+      width: '100%',
+    },
+    scrollContent: {
+      padding: 20,
+    },
+    headerSection: {
+      alignItems: 'center',
+      marginTop: 20,
+      marginBottom: 30,
+      padding: 20,
+      backgroundColor: colors.absent,
+      borderRadius: 15,
+    },
+    arabicText: {
+      fontSize: 36,
+      color: colors.text[theme],
+      marginBottom: 10,
+    },
+    transliteration: {
+      fontSize: 20,
+      color: colors.surface[theme],
+      marginBottom: 10,
+    },
+    englishText: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: colors.correct,
+    },
+    section: {
+      marginBottom: 25,
+    },
+    sectionTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: colors.text[theme],
+      marginBottom: 15,
+    },
+    meaningsContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 10,
+    },
+    meaningChip: {
+      backgroundColor: colors.present,
+      paddingHorizontal: 15,
+      paddingVertical: 8,
+      borderRadius: 20,
+    },
+    meaningText: {
+      color: colors.text[theme],
+      fontSize: 16,
+    },
+    grammarCard: {
+      backgroundColor: colors.absent,
+      padding: 15,
+      borderRadius: 10,
+    },
+    grammarText: {
+      color: colors.text[theme],
+      fontSize: 16,
+      marginBottom: 5,
+    },
+    frequencyHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 15,
+    },
+    frequencyBadge: {
+      backgroundColor: colors.correct,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 15,
+    },
+    frequencyText: {
+      color: colors.text[theme],
+      fontSize: 14,
+      fontWeight: 'bold',
+    },
+    occurrenceCard: {
+      backgroundColor: colors.absent,
+      borderRadius: 10,
+      marginBottom: 10,
+      overflow: 'hidden',
+    },
+    referenceContainer: {
+      backgroundColor: colors.present,
+      padding: 10,
+    },
+    referenceText: {
+      color: colors.text[theme],
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    contextText: {
+      color: colors.text[theme],
+      fontSize: 14,
+      padding: 15,
+      fontStyle: 'italic',
+    },
+  });
+
   return (
     <View style={styles.centeredView}>
       <View style={styles.modalView}>
@@ -68,141 +207,5 @@ const WordDetails: React.FC<WordDetailsProps> = ({ word, onClose }) => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  centeredView: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalView: {
-    width: CONTENT_WIDTH,
-    maxHeight: '90%',
-    backgroundColor: colors.background,
-    borderRadius: 15,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  closeButton: {
-    position: 'absolute',
-    right: 15,
-    top: 10,
-    zIndex: 1,
-  },
-  closeButtonText: {
-    fontSize: 40,
-    color: colors.text,
-    lineHeight: 40,
-  },
-  scrollView: {
-    width: '100%',
-  },
-  scrollContent: {
-    padding: 20,
-  },
-  headerSection: {
-    alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 30,
-    padding: 20,
-    backgroundColor: colors.absent,
-    borderRadius: 15,
-  },
-  arabicText: {
-    fontSize: 36,
-    color: colors.text,
-    marginBottom: 10,
-  },
-  transliteration: {
-    fontSize: 20,
-    color: colors.surface,
-    marginBottom: 10,
-  },
-  englishText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: colors.correct,
-  },
-  section: {
-    marginBottom: 25,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: colors.text,
-    marginBottom: 15,
-  },
-  meaningsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  meaningChip: {
-    backgroundColor: colors.present,
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  meaningText: {
-    color: colors.text,
-    fontSize: 16,
-  },
-  grammarCard: {
-    backgroundColor: colors.absent,
-    padding: 15,
-    borderRadius: 10,
-  },
-  grammarText: {
-    color: colors.text,
-    fontSize: 16,
-    marginBottom: 5,
-  },
-  frequencyHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 15,
-  },
-  frequencyBadge: {
-    backgroundColor: colors.correct,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 15,
-  },
-  frequencyText: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  occurrenceCard: {
-    backgroundColor: colors.absent,
-    borderRadius: 10,
-    marginBottom: 10,
-    overflow: 'hidden',
-  },
-  referenceContainer: {
-    backgroundColor: colors.present,
-    padding: 10,
-  },
-  referenceText: {
-    color: colors.text,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  contextText: {
-    color: colors.text,
-    fontSize: 14,
-    padding: 15,
-    fontStyle: 'italic',
-  },
-});
 
 export default WordDetails; 
