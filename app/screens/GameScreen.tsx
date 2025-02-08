@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Modal, Alert, Dimensions, SafeAreaView, Text, TouchableOpacity, Platform, ScrollView, ActivityIndicator } from 'react-native';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import PuzzleGrid from '../components/PuzzleGrid';
 import Keyboard from '../components/Keyboard';
-import WordDetails from '../components/WordDetails';
 import IntroModal from '../components/IntroModal';
 import { QuranicWord, GuessResult } from '../types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -15,6 +14,8 @@ import { Stack } from 'expo-router';
 import useUserProgress from '../hooks/useUserProgress';
 import UserStats from '../components/UserStats';
 import HeaderLogo from '../components/HeaderLogo';
+import { getTodayWordIndex } from '../utils/wordIndex';
+import { STORAGE_KEYS } from '../constants/storage';
 
 const MAX_ATTEMPTS = 6;
 const INTRO_SHOWN_KEY = 'quranic_wordle_intro_shown';
@@ -23,6 +24,13 @@ const { width: SCREEN_WIDTH, height } = Dimensions.get('window');
 const CONTENT_WIDTH = SCREEN_WIDTH * 0.75; // 75% of screen width
 
 const WORD_LENGTH = 5;
+
+interface GameState {
+  guesses: GuessResult[][];
+  letterStates: Record<string, GuessResult['status']>;
+  gameOver: boolean;
+  showWordDetails: boolean;
+}
 
 export default GameScreen;
 
@@ -44,11 +52,39 @@ function GameScreen() {
 
   useEffect(() => {
     const init = async () => {
-      const introShown = await AsyncStorage.getItem(INTRO_SHOWN_KEY);
-      if (!introShown) {
-        setShowIntro(true);
+      try {
+        const introShown = await AsyncStorage.getItem(INTRO_SHOWN_KEY);
+        if (!introShown) {
+          setShowIntro(true);
+        }
+        
+        // Check if user has already played today
+        const played = await hasPlayedToday();
+        
+        // Load saved game state if it exists and hasn't been played today
+        if (!played) {
+          const savedState = await AsyncStorage.getItem(STORAGE_KEYS.GAME_STATE);
+          if (savedState) {
+            const state = JSON.parse(savedState) as GameState;
+            setGuesses(state.guesses);
+            setLetterStates(state.letterStates);
+            setGameOver(state.gameOver);
+            setShowWordDetails(state.showWordDetails);
+          }
+        } else {
+          // If already played today, clear the state
+          await AsyncStorage.removeItem(STORAGE_KEYS.GAME_STATE);
+          setGuesses([]);
+          setLetterStates({});
+          setGameOver(false);
+          setShowWordDetails(false);
+        }
+        
+        // Then fetch daily word
+        fetchDailyWord();
+      } catch (error) {
+        console.error('Error during initialization:', error);
       }
-      fetchDailyWord();
     };
     init();
   }, []);
@@ -64,8 +100,14 @@ function GameScreen() {
       
       // Check if user has already played today
       const played = await hasPlayedToday();
+      
+      // Get today's word index
+      const todayIndex = getTodayWordIndex();
+      
+      // Query Firestore for word with matching index
       const wordsRef = collection(db, 'words');
-      const querySnapshot = await getDocs(wordsRef);
+      const q = query(wordsRef, where('index', '==', todayIndex));
+      const querySnapshot = await getDocs(q);
       
       if (!querySnapshot.empty) {
         const wordDoc = querySnapshot.docs[0];
@@ -75,9 +117,9 @@ function GameScreen() {
         if (played) {
           setGameOver(true);
           setShowWordDetails(true);
-          // Also mark as played in AsyncStorage
-          await markAsPlayed();
         }
+      } else {
+        console.error('No word found for today');
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to fetch word');
@@ -127,15 +169,29 @@ function GameScreen() {
       }
     }
 
-    setGuesses(prev => [...prev, guessResult]);
+    const newGuesses = [...guesses, guessResult];
+    setGuesses(newGuesses);
     setLetterStates(newLetterStates);
     setCurrentGuess('');
 
+    // Save game state immediately
+    const gameState: GameState = {
+      guesses: newGuesses,
+      letterStates: newLetterStates,
+      gameOver: false,
+      showWordDetails: false
+    };
+    await AsyncStorage.setItem(STORAGE_KEYS.GAME_STATE, JSON.stringify(gameState));
+
     // Check win/lose condition
-    if (currentGuess === targetWord || guesses.length + 1 >= MAX_ATTEMPTS) {
+    const todayIndex = getTodayWordIndex();
+    const isCorrectWord = currentWord.index === todayIndex && currentGuess === targetWord;
+
+    if (isCorrectWord || newGuesses.length >= MAX_ATTEMPTS) {
       setGameOver(true);
-      const success = currentGuess === targetWord;
-      await updateUserProgress(currentWord.id, guesses.length + 1, success);
+      const success = isCorrectWord;
+      
+      await updateUserProgress(currentWord.id, newGuesses.length, success);
       await markAsPlayed();
       
       if (success) {
@@ -153,7 +209,7 @@ function GameScreen() {
 
   const hasPlayedToday = async () => {
     try {
-      const lastPlayed = await AsyncStorage.getItem('last_played_date');
+      const lastPlayed = await AsyncStorage.getItem(STORAGE_KEYS.LAST_PLAYED_DATE);
       if (!lastPlayed) return false;
       
       const today = new Date().toISOString().split('T')[0];
@@ -167,7 +223,7 @@ function GameScreen() {
   const markAsPlayed = async () => {
     try {
       const today = new Date().toISOString().split('T')[0];
-      await AsyncStorage.setItem('last_played_date', today);
+      await AsyncStorage.setItem(STORAGE_KEYS.LAST_PLAYED_DATE, today);
     } catch (error) {
       console.error('Error marking as played:', error);
     }

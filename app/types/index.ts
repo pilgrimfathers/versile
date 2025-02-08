@@ -6,6 +6,7 @@ export interface WordOccurrence {
 
 export interface QuranicWord {
   id: string;
+  index: number;
   english_translation: string;
   arabic_word: string;
   transliteration: string;

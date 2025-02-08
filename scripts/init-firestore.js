@@ -20,6 +20,7 @@ const db = getFirestore(app);
 const sampleWords = [
   {
     id: 'mercy',
+    index: 0,
     english_translation: 'mercy',
     arabic_word: 'رحمة',
     transliteration: 'Rahma',
@@ -44,6 +45,7 @@ const sampleWords = [
   },
   {
     id: 'peace',
+    index: 1,
     english_translation: 'peace',
     arabic_word: 'سلام',
     transliteration: 'Salam',
@@ -68,6 +70,7 @@ const sampleWords = [
   },
   {
     id: 'light',
+    index: 2,
     english_translation: 'light',
     arabic_word: 'نور',
     transliteration: 'Noor',
@@ -92,6 +95,7 @@ const sampleWords = [
   },
   {
     id: 'truth',
+    index: 3,
     english_translation: 'truth',
     arabic_word: 'حق',
     transliteration: 'Haqq',
@@ -116,6 +120,7 @@ const sampleWords = [
   },
   {
     id: 'faith',
+    index: 4,
     english_translation: 'faith',
     arabic_word: 'إيمان',
     transliteration: 'Iman',
