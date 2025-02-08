@@ -16,6 +16,7 @@ import UserStats from '../components/UserStats';
 import HeaderLogo from '../components/HeaderLogo';
 import { getTodayWordIndex } from '../utils/wordIndex';
 import { STORAGE_KEYS } from '../constants/storage';
+import PrivacyPolicy from '../components/PrivacyPolicy';
 
 const MAX_ATTEMPTS = 6;
 const INTRO_SHOWN_KEY = 'quranic_wordle_intro_shown';
@@ -49,6 +50,7 @@ function GameScreen() {
   const [loading, setLoading] = useState(true);
   const [showGameOver, setShowGameOver] = useState(false);
   const [isPlayedStatusLoaded, setIsPlayedStatusLoaded] = useState(false);
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
 
   const { theme, toggleTheme } = useTheme();
   const colors = useColors();
@@ -432,6 +434,12 @@ function GameScreen() {
       justifyContent: 'center',
       alignItems: 'center',
     },
+    privacyLink: {
+      color: colors.present,
+      textAlign: 'center',
+      fontSize: 14,
+      padding: 10,
+    },
   });
 
   if (!currentWord || loading || !isPlayedStatusLoaded) {
@@ -591,7 +599,12 @@ function GameScreen() {
             </View>
           </Modal>
         </View>
+        <Text style={styles.privacyLink} onPress={() => setShowPrivacyPolicy(true)}>Privacy Policy</Text>
       </View>
+      <PrivacyPolicy
+        visible={showPrivacyPolicy}
+        onClose={() => setShowPrivacyPolicy(false)}
+      />
     </SafeAreaView>
   );
 } 
