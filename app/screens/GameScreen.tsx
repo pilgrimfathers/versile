@@ -57,16 +57,26 @@ function GameScreen() {
   useEffect(() => {
     const init = async () => {
       try {
+        // Check intro status
         const introShown = await AsyncStorage.getItem(INTRO_SHOWN_KEY);
         if (!introShown) {
           setShowIntro(true);
         }
         
-        // Check if user has already played today
-        const played = await hasPlayedToday();
+        // Get the last played date from storage
+        const lastPlayedDate = await AsyncStorage.getItem(STORAGE_KEYS.LAST_PLAYED_DATE);
+        const today = new Date().toISOString().split('T')[0];
         
-        // Load saved game state if it exists and hasn't been played today
-        if (!played) {
+        // Clear state if it's a new day
+        if (lastPlayedDate !== today) {
+          await AsyncStorage.removeItem(STORAGE_KEYS.GAME_STATE);
+          await AsyncStorage.removeItem(STORAGE_KEYS.LAST_PLAYED_DATE); 
+          setGuesses([]);
+          setLetterStates({});
+          setGameOver(false);
+          setShowWordDetails(false);
+        } else {
+          // Only load saved state if it's the same day
           const savedState = await AsyncStorage.getItem(STORAGE_KEYS.GAME_STATE);
           if (savedState) {
             const state = JSON.parse(savedState) as GameState;
@@ -75,16 +85,9 @@ function GameScreen() {
             setGameOver(state.gameOver);
             setShowWordDetails(state.showWordDetails);
           }
-        } else {
-          // If already played today, clear the state
-          await AsyncStorage.removeItem(STORAGE_KEYS.GAME_STATE);
-          setGuesses([]);
-          setLetterStates({});
-          setGameOver(false);
-          setShowWordDetails(false);
         }
         
-        // Then fetch daily word
+        // Fetch daily word
         fetchDailyWord();
       } catch (error) {
         console.error('Error during initialization:', error);
@@ -102,8 +105,8 @@ function GameScreen() {
     try {
       setLoading(true);
       
-      // Check if user has already played today
-      const played = await hasPlayedToday();
+      // Check if user has already completed today's game
+      const completed = await hasCompletedPlayingToday();
       
       // Get today's word index
       const todayIndex = getTodayWordIndex();
@@ -118,7 +121,7 @@ function GameScreen() {
         const word = { id: wordDoc.id, ...wordDoc.data() } as QuranicWord;
         setCurrentWord(word);
         
-        if (played) {
+        if (completed) {
           setGameOver(true);
           setShowWordDetails(true);
         }
@@ -139,12 +142,12 @@ function GameScreen() {
     if (key === '⌫') {
       setCurrentGuess(prev => prev.slice(0, -1));
     } else if (key === 'ENTER') {
-      if (currentGuess.length === currentWord.english_translation.length) {
+      if (currentGuess.length === currentWord.id.length) {
         submitGuess();
       } else {
         Alert.alert('Not enough letters', 'Please complete the word before submitting');
       }
-    } else if (currentGuess.length < currentWord.english_translation.length) {
+    } else if (currentGuess.length < currentWord.id.length) {
       setCurrentGuess(prev => prev + key.toLowerCase());
     }
   };
@@ -152,7 +155,7 @@ function GameScreen() {
   const submitGuess = async () => {
     if (!currentWord) return;
     
-    const targetWord = currentWord.english_translation.toLowerCase();
+    const targetWord = currentWord.id.toLowerCase();
     const guessResult: GuessResult[] = [];
     const newLetterStates = { ...letterStates };
 
@@ -178,32 +181,38 @@ function GameScreen() {
     setLetterStates(newLetterStates);
     setCurrentGuess('');
 
-    // Save game state immediately
-    const gameState: GameState = {
-      guesses: newGuesses,
-      letterStates: newLetterStates,
-      gameOver: false,
-      showWordDetails: false
-    };
-    await AsyncStorage.setItem(STORAGE_KEYS.GAME_STATE, JSON.stringify(gameState));
+    // Set last played date for today on first guess
+    const today = new Date().toISOString().split('T')[0];
+    await AsyncStorage.setItem(STORAGE_KEYS.LAST_PLAYED_DATE, today);
 
     // Check win/lose condition
     const todayIndex = getTodayWordIndex();
     const isCorrectWord = currentWord.index === todayIndex && currentGuess === targetWord;
 
+    let gameState: GameState = {
+      guesses: newGuesses,
+      letterStates: newLetterStates,
+      gameOver: gameOver,
+      showWordDetails: showWordDetails
+    };
+    
+
     if (isCorrectWord || newGuesses.length >= MAX_ATTEMPTS) {
       setGameOver(true);
       const success = isCorrectWord;
-      
+      gameState.gameOver = true;
+
       await updateUserProgress(currentWord.id, newGuesses.length, success);
-      await markAsPlayed();
       
       if (success) {
+        gameState.showWordDetails = true;
         setShowWordDetails(true);
       } else {
         setShowGameOver(true);
       }
     }
+
+    await AsyncStorage.setItem(STORAGE_KEYS.GAME_STATE, JSON.stringify(gameState));
   };
 
   const handleGameOverClose = () => {
@@ -211,25 +220,23 @@ function GameScreen() {
     setShowWordDetails(true);
   };
 
-  const hasPlayedToday = async () => {
+  const hasCompletedPlayingToday = async () => {
     try {
       const lastPlayed = await AsyncStorage.getItem(STORAGE_KEYS.LAST_PLAYED_DATE);
-      if (!lastPlayed) return false;
+      const today = new Date().toISOString().split('T')[0];
       
-      const today = new Date().toISOString().split('T')[0];
-      return lastPlayed === today;
+      // First check if they played today at all
+      if (!lastPlayed || lastPlayed !== today) return false;
+      
+      // Then check if they completed the game
+      const savedState = await AsyncStorage.getItem(STORAGE_KEYS.GAME_STATE);
+      if (!savedState) return false;
+      
+      const gameState = JSON.parse(savedState) as GameState;
+      return gameState.gameOver;
     } catch (error) {
-      console.error('Error checking last played date:', error);
+      console.error('Error checking completion status:', error);
       return false;
-    }
-  };
-
-  const markAsPlayed = async () => {
-    try {
-      const today = new Date().toISOString().split('T')[0];
-      await AsyncStorage.setItem(STORAGE_KEYS.LAST_PLAYED_DATE, today);
-    } catch (error) {
-      console.error('Error marking as played:', error);
     }
   };
 
@@ -502,7 +509,7 @@ function GameScreen() {
               <View style={styles.headerSection}>
                 <Text style={styles.arabicText}>{currentWord.arabic_word}</Text>
                 <Text style={styles.transliteration}>{currentWord.transliteration}</Text>
-                <Text style={styles.englishText}>{currentWord.english_translation.toUpperCase()}</Text>
+                <Text style={styles.englishText}>{currentWord.id.toUpperCase()}</Text>
               </View>
 
               <View style={styles.section}>
@@ -582,7 +589,7 @@ function GameScreen() {
 
                 <Text style={styles.gameOverTitle}>Game Over!</Text>
                 <Text style={styles.answerText}>
-                  The word was: <Text style={styles.wordText}>{currentWord?.english_translation.toUpperCase()}</Text>
+                  The word was: <Text style={styles.wordText}>{currentWord?.id.toUpperCase()}</Text>
                 </Text>
                 <Text style={styles.arabicWord}>{currentWord?.arabic_word}</Text>
                 <Text style={styles.transliteration}>{currentWord?.transliteration}</Text>
