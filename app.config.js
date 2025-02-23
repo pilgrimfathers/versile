@@ -28,7 +28,7 @@ export default {
         backgroundColor: "#ffffff"
       },
       package: "com.versile.app",
-      versionCode: 1,
+      versionCode: 2,
       splash: {
         image: "./assets/images/splash-icon.png",
         resizeMode: "contain",
