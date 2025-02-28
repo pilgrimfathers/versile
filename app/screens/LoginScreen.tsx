@@ -37,7 +37,7 @@ const LoginScreen = () => {
         />
       </View>
       
-      <Text style={[styles.title, { color: colors.text[theme] }]}>Welcome to Versele</Text>
+      <Text style={[styles.title, { color: colors.text[theme] }]}>Welcome to Versile</Text>
       
       {isWeb ? (
         // Web version - show both Google sign-in and guest options
