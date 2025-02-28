@@ -17,9 +17,23 @@ export default function useColors(): ColorScheme {
       light: colors.text.light,
       dark: colors.text.dark
     },
+    secondaryText: {
+      light: colors.secondaryText.light,
+      dark: colors.secondaryText.dark
+    },
     correct: colors.correct,
     present: colors.present,
     absent: colors.absent,
+    button: {
+      background: {
+        light: colors.button.background.light,
+        dark: colors.button.background.dark
+      },
+      text: {
+        light: colors.button.text.light,
+        dark: colors.button.text.dark
+      }
+    },
     key: {
       background: {
         light: colors.key.background.light,

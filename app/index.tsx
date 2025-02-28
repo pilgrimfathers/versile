@@ -1,19 +1,17 @@
 import { Stack } from 'expo-router';
-import GameScreen from './screens/GameScreen';
 import { View } from 'react-native';
-import { ThemeProvider } from './context/ThemeContext';
+import IntroScreen from './screens/IntroScreen';
 
 export default function Index() {
   return (
-    <ThemeProvider>
-      <View style={{ flex: 1 }}>
-        <Stack.Screen
-          options={{
-            title: "Versile",
-          }}
-        />
-        <GameScreen />
-      </View>
-    </ThemeProvider>
+    <View style={{ flex: 1 }}>
+      <Stack.Screen
+        options={{
+          title: "Versile",
+          headerShown: false, // Hide the header on the intro screen
+        }}
+      />
+      <IntroScreen />
+    </View>
   );
 }

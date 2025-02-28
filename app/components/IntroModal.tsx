@@ -24,7 +24,7 @@ const IntroModal: React.FC<IntroModalProps> = ({ visible, onClose }) => {
   const styles = StyleSheet.create({
     centeredView: {
       flex: 1,
-      backgroundColor: colors.modal.overlay,
+      backgroundColor: colors.modal.background[theme],
       justifyContent: 'center',
       alignItems: 'center',
       paddingHorizontal: 20,
@@ -145,7 +145,7 @@ const IntroModal: React.FC<IntroModalProps> = ({ visible, onClose }) => {
   return (
     <Modal
       animationType="slide"
-      transparent={true}
+      transparent={false}
       visible={visible}
       onRequestClose={onClose}
     >

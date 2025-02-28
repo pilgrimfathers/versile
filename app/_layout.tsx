@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { LogBox } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import useColors from './hooks/useColors';
+import { ThemeProvider } from './context/ThemeContext';
 import useTheme from './context/ThemeContext';
 import LoadingScreen from './components/LoadingScreen';
 
@@ -13,8 +14,6 @@ LogBox.ignoreLogs([
 ]);
 
 export default function Layout() {
-  const colors = useColors();
-  const { theme } = useTheme();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -29,6 +28,17 @@ export default function Layout() {
   if (isLoading) {
     return <LoadingScreen />;
   }
+  
+  return (
+    <ThemeProvider>
+      <LayoutContent />
+    </ThemeProvider>
+  );
+}
+
+function LayoutContent() {
+  const colors = useColors();
+  const { theme } = useTheme();
   
   return (
     <SafeAreaProvider>

@@ -13,9 +13,23 @@ const colors: ColorScheme = {
     light: '#1A1A1A',
     dark: '#FFFFFF'
   },
+  secondaryText: {
+    light: '#787C7E',
+    dark: '#A3A3A3'
+  },
   correct: '#6AAA64',  // Softer green
   present: '#C9B458',  // Warmer yellow
   absent: '#787C7E',   // Lighter gray
+  button: {
+    background: {
+      light: '#6AAA64',
+      dark: '#538D4E'
+    },
+    text: {
+      light: '#FFFFFF',
+      dark: '#FFFFFF'
+    }
+  },
   key: {
     background: {
       light: '#D3D6DA',

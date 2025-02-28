@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Image } from 'react-native';
+import { View, StyleSheet, Image, Platform } from 'react-native';
 
 const HeaderLogo = () => {
   return (
@@ -17,9 +17,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   image: {
-    width: 200,
-    height: 100,
-    resizeMode: 'contain'
+    width: Platform.OS !== 'ios' ? 200 : 100,
+    height: Platform.OS !== 'ios' ? 100 : 50,
+    resizeMode: 'contain',
+    // marginTop: Platform.OS === 'ios' ? 30 : 0,
   }
 });
 

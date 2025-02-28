@@ -54,9 +54,23 @@ export interface ColorScheme {
     light: string;
     dark: string;
   };
+  secondaryText: {
+    light: string;
+    dark: string;
+  };
   correct: string;
   present: string;
   absent: string;
+  button: {
+    background: {
+      light: string;
+      dark: string;
+    };
+    text: {
+      light: string;
+      dark: string;
+    };
+  };
   key: {
     background: {
       light: string;
