@@ -9,7 +9,7 @@ export default function Game() {
       <Stack.Screen
         options={{
         title: "Versile",
-        headerShown: false,
+        headerShown: true,
       }}
       />
       <GameScreen />

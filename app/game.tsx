@@ -1,8 +1,9 @@
 import { Stack } from 'expo-router';
+import React from 'react';
 import { View } from 'react-native';
-import IntroScreen from './screens/IntroScreen';
+import GameScreen from './screens/GameScreen';
 
-export default function Index() {
+export default function Game() {
   return (
     <View style={{ flex: 1 }}>
       <Stack.Screen
@@ -11,7 +12,7 @@ export default function Index() {
           headerShown: true, // Show the header to display the ProfileButton
         }}
       />
-      <IntroScreen />
+      <GameScreen />
     </View>
   );
-}
+} 

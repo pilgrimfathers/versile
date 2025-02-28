@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Modal, Alert, Dimensions, SafeAreaView, Text, TouchableOpacity, Platform, ScrollView, ActivityIndicator } from 'react-native';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import PuzzleGrid from '../components/PuzzleGrid';
 import Keyboard from '../components/Keyboard';
 import IntroModal from '../components/IntroModal';
-import { QuranicWord, GuessResult } from '../types';
+import { QuranicWord, GuessResult, GameSession } from '../types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useTheme from '../context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
@@ -52,7 +52,7 @@ function GameScreen() {
 
   const { theme, toggleTheme } = useTheme();
   const colors = useColors();
-  const { user, loading: userLoading, updateUserProgress } = useUserProgress();
+  const { user, loading: userLoading, updateUserProgress, isGuest } = useUserProgress();
 
   useEffect(() => {
     const init = async () => {
@@ -124,6 +124,31 @@ function GameScreen() {
         if (completed) {
           setGameOver(true);
           setShowWordDetails(true);
+          
+          // If authenticated user, try to load their previous game state from Firebase
+          if (user && !isGuest) {
+            const today = new Date().toISOString().split('T')[0];
+            const sessionRef = doc(db, 'game_sessions', `${user.id}_${today}`);
+            const sessionDoc = await getDoc(sessionRef);
+            
+            if (sessionDoc.exists()) {
+              const sessionData = sessionDoc.data() as GameSession;
+              
+              // If we have game state in AsyncStorage, use that
+              const savedState = await AsyncStorage.getItem(STORAGE_KEYS.GAME_STATE);
+              if (!savedState) {
+                // If no local state, create a basic completed state
+                const gameState: GameState = {
+                  guesses: [], // We don't have the actual guesses
+                  letterStates: {},
+                  gameOver: true,
+                  showWordDetails: true
+                };
+                await AsyncStorage.setItem(STORAGE_KEYS.GAME_STATE, JSON.stringify(gameState));
+                await AsyncStorage.setItem(STORAGE_KEYS.LAST_PLAYED_DATE, today);
+              }
+            }
+          }
         }
       } else {
         console.error('No word found for today');
@@ -202,7 +227,11 @@ function GameScreen() {
       const success = isCorrectWord;
       gameState.gameOver = true;
 
+      // Update user progress in Firebase and/or AsyncStorage
       await updateUserProgress(currentWord.id, newGuesses.length, success);
+      
+      // Ensure we set the last played date in AsyncStorage
+      await AsyncStorage.setItem(STORAGE_KEYS.LAST_PLAYED_DATE, today);
       
       if (success) {
         gameState.showWordDetails = true;
@@ -222,8 +251,27 @@ function GameScreen() {
 
   const hasCompletedPlayingToday = async () => {
     try {
-      const lastPlayed = await AsyncStorage.getItem(STORAGE_KEYS.LAST_PLAYED_DATE);
       const today = new Date().toISOString().split('T')[0];
+      
+      // For authenticated users, check Firebase first
+      if (user && !isGuest) {
+        // Check if there's a game session for today
+        const sessionRef = doc(db, 'game_sessions', `${user.id}_${today}`);
+        const sessionDoc = await getDoc(sessionRef);
+        
+        if (sessionDoc.exists()) {
+          const sessionData = sessionDoc.data() as GameSession;
+          return sessionData.success || false; // If they played and succeeded
+        }
+        
+        // Also check if today's date matches the user's last_played date
+        if (user.last_played === today) {
+          return true;
+        }
+      }
+      
+      // Fallback to AsyncStorage for guest users or if Firebase check fails
+      const lastPlayed = await AsyncStorage.getItem(STORAGE_KEYS.LAST_PLAYED_DATE);
       
       // First check if they played today at all
       if (!lastPlayed || lastPlayed !== today) return false;

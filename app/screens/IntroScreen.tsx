@@ -10,7 +10,7 @@ const IntroScreen = () => {
   const { theme } = useTheme();
 
   const navigateToGame = () => {
-    router.push('/screens/GameScreen');
+    router.push('/game');
   };
 
   const styles = StyleSheet.create({

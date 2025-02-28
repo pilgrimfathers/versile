@@ -1,4 +1,4 @@
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { LogBox } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -6,6 +6,8 @@ import useColors from './hooks/useColors';
 import { ThemeProvider } from './context/ThemeContext';
 import useTheme from './context/ThemeContext';
 import LoadingScreen from './components/LoadingScreen';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import ProfileButton from './components/ProfileButton';
 
 // Ignore specific warnings
 LogBox.ignoreLogs([
@@ -31,7 +33,9 @@ export default function Layout() {
   
   return (
     <ThemeProvider>
-      <LayoutContent />
+      <AuthProvider>
+        <LayoutContent />
+      </AuthProvider>
     </ThemeProvider>
   );
 }
@@ -39,6 +43,14 @@ export default function Layout() {
 function LayoutContent() {
   const colors = useColors();
   const { theme } = useTheme();
+  const { isAuthenticated, isGuest, isLoading } = useAuth();
+  
+  useEffect(() => {
+    // Redirect to login if not authenticated and not in guest mode
+    if (!isLoading && !isAuthenticated && !isGuest) {
+      router.replace('/screens/LoginScreen');
+    }
+  }, [isAuthenticated, isGuest, isLoading]);
   
   return (
     <SafeAreaProvider>
@@ -55,6 +67,8 @@ function LayoutContent() {
           contentStyle: {
             backgroundColor: colors.background[theme],
           },
+          headerRight: () => <ProfileButton />,
+          headerTitle: '',
         }}
       />
     </SafeAreaProvider>

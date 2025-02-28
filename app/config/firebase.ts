@@ -1,5 +1,11 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, initializeAuth, getReactNativePersistence, Auth, signInAnonymously } from 'firebase/auth';
+import { 
+  getAuth, 
+  initializeAuth, 
+  getReactNativePersistence, 
+  Auth, 
+  GoogleAuthProvider 
+} from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { isSupported, getAnalytics } from 'firebase/analytics';
 import { Platform } from 'react-native';
@@ -36,12 +42,10 @@ if (Platform.OS === 'web') {
 // Initialize Firestore
 const db = getFirestore(app);
 
-// Sign in anonymously
-signInAnonymously(auth).catch((error) => {
-  console.error("Anonymous auth error:", error);
-});
+// Initialize Google Auth Provider
+const googleProvider = new GoogleAuthProvider();
 
 // Initialize Analytics only if supported
 isSupported().then(yes => yes && getAnalytics(app));
 
-export { app, auth, db }; 
+export { app, auth, db, googleProvider }; 
