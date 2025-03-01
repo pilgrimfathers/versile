@@ -1,4 +1,4 @@
-import { Stack, router } from 'expo-router';
+import { Stack, router, useRootNavigationState, Redirect } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { LogBox } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -48,13 +48,24 @@ function LayoutContent() {
   const { theme } = useTheme();
   const { isAuthenticated, isGuest, isLoading, user } = useAuth();
   const [migrationComplete, setMigrationComplete] = useState(false);
+  const rootNavigationState = useRootNavigationState();
   
+  // Add console logs to debug the state
+  console.log('Auth state:', { isAuthenticated, isGuest, isLoading });
+  console.log('Navigation state ready:', !!rootNavigationState?.key);
+  
+  // Use useEffect for navigation to ensure it happens after render
   useEffect(() => {
-    // Redirect to login if not authenticated and not in guest mode
-    if (!isLoading && !isAuthenticated && !isGuest) {
-      router.replace('/screens/LoginScreen');
+    if (rootNavigationState?.key && !isLoading && !isAuthenticated && !isGuest) {
+      console.log('Redirecting to login screen');
+      // Add a small delay to ensure navigation is ready
+      const timer = setTimeout(() => {
+        router.replace('/screens/login');
+      }, 100);
+      
+      return () => clearTimeout(timer);
     }
-  }, [isAuthenticated, isGuest, isLoading]);
+  }, [rootNavigationState?.key, isAuthenticated, isGuest, isLoading]);
   
   // Handle migration from AsyncStorage to Firestore
   useEffect(() => {

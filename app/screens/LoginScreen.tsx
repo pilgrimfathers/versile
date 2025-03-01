@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import useColors from '../hooks/useColors';
@@ -10,12 +10,19 @@ const LoginScreen = () => {
   const colors = useColors();
   const { theme } = useTheme();
 
+  // Add debugging logs
+  useEffect(() => {
+    console.log('LoginScreen rendered');
+  }, []);
+
   const handleGoogleSignIn = async () => {
+    console.log('Google sign in pressed');
     await signInWithGoogle();
     router.replace('/');
   };
 
   const handlePlayAsGuest = async () => {
+    console.log('Play as guest pressed');
     await playAsGuest();
     router.replace('/');
   };
