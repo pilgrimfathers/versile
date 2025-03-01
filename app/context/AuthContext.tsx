@@ -48,6 +48,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Listen for auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
+      console.log('Auth state changed:', fbUser?.uid, fbUser?.isAnonymous);
       setFirebaseUser(fbUser);
       
       if (fbUser) {
@@ -72,7 +73,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               email: fbUser.email || '',
               streak: 0,
               last_played: '',
-              guessed_words: []
+              guessed_words: [],
+              total_score: 0,
+              current_week_score: 0,
+              best_week_score: 0,
+              longest_streak: 0,
+              last_week_start: new Date().toISOString().split('T')[0]
             };
             
             await setDoc(userRef, newUser);
@@ -106,23 +112,37 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const signInWithGoogle = async () => {
     try {
+      console.log('AuthContext: signInWithGoogle called');
       await saveUserPreference('anonymous', 'guest_mode', 'false', false);
       setIsGuest(false);
       
       if (isWeb) {
         // For web, use Firebase's built-in Google authentication
-        // We'll use a simpler approach that works with the current Firebase version
+        console.log('AuthContext: Web platform detected, setting up Google provider');
         const provider = new GoogleAuthProvider();
-        // @ts-ignore - This is a workaround for the type error
-        // In a real app, you would import the correct type
-        const { signInWithPopup } = await import('firebase/auth');
-        await signInWithPopup(auth, provider);
+        
+        try {
+          // Use @ts-ignore to bypass TypeScript errors
+          // This is a workaround for the type error in Firebase v10
+          // @ts-ignore
+          const { signInWithPopup } = await import('firebase/auth');
+          console.log('AuthContext: Using signInWithPopup');
+          // @ts-ignore
+          const result = await signInWithPopup(auth, provider);
+          console.log('AuthContext: Sign in successful', result?.user?.uid);
+        } catch (authError) {
+          console.error('AuthContext: Error with Google sign-in:', authError);
+          // Fallback to guest mode
+          await playAsGuest();
+        }
       } else {
         // For mobile, automatically use guest mode
+        console.log('AuthContext: Mobile platform detected, using guest mode');
         await playAsGuest();
       }
     } catch (error) {
-      console.error('Google sign in error:', error);
+      console.error('AuthContext: Google sign in error:', error);
+      setIsLoading(false);
     }
   };
 

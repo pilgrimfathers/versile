@@ -1,22 +1,24 @@
-import { Stack, router, useRootNavigationState, Redirect } from 'expo-router';
+import { Stack, router, useRootNavigationState, Redirect, Slot } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { LogBox } from 'react-native';
+import { LogBox, View, ActivityIndicator } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import useColors from './hooks/useColors';
 import { ThemeProvider } from './context/ThemeContext';
 import useTheme from './context/ThemeContext';
-import LoadingScreen from './components/LoadingScreen';
-import InitialLoadingScreen from './components/InitialLoadingScreen';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import InitialLoadingScreen from './components/InitialLoadingScreen';
 import ProfileButton from './components/ProfileButton';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { migrateToFirestore, cleanupAsyncStorage } from './utils/migrateToFirestore';
+import { Ionicons } from '@expo/vector-icons';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 // Ignore specific warnings
 LogBox.ignoreLogs([
   'Route "./types/index.ts" is missing the required default export',
   'props.pointerEvents is deprecated'
 ]);
+
+const Tabs = createBottomTabNavigator();
 
 export default function Layout() {
   const [isLoading, setIsLoading] = useState(true);
@@ -46,9 +48,9 @@ export default function Layout() {
 function LayoutContent() {
   const colors = useColors();
   const { theme } = useTheme();
-  const { isAuthenticated, isGuest, isLoading, user } = useAuth();
-  const [migrationComplete, setMigrationComplete] = useState(false);
+  const { user, isLoading, isAuthenticated, isGuest } = useAuth();
   const rootNavigationState = useRootNavigationState();
+  const [appReady, setAppReady] = useState(false);
   
   // Add console logs to debug the state
   console.log('Auth state:', { isAuthenticated, isGuest, isLoading });
@@ -67,45 +69,20 @@ function LayoutContent() {
     }
   }, [rootNavigationState?.key, isAuthenticated, isGuest, isLoading]);
   
-  // Handle migration from AsyncStorage to Firestore
   useEffect(() => {
-    const handleMigration = async () => {
-      try {
-        // Check if migration has already been done
-        const migrationDone = await AsyncStorage.getItem('migration_to_firestore_complete');
-        
-        if (migrationDone !== 'true' && user) {
-          // Perform migration
-          await migrateToFirestore(user.id, isGuest);
-          
-          // Mark migration as complete
-          await AsyncStorage.setItem('migration_to_firestore_complete', 'true');
-          
-          // Optional: Clean up AsyncStorage after successful migration
-          // Uncomment this line after testing to remove old data
-          // await cleanupAsyncStorage();
-          
-          setMigrationComplete(true);
-          console.log('Migration to Firestore completed successfully');
-        } else {
-          setMigrationComplete(true);
-        }
-      } catch (error) {
-        console.error('Error during migration:', error);
-        setMigrationComplete(true); // Still mark as complete to not block the app
-      }
+    const initializeApp = async () => {
+      setAppReady(true);
     };
     
-    if (!isLoading && user) {
-      handleMigration();
-    } else if (!isLoading) {
-      // If no user, still mark migration as complete to not block the app
-      setMigrationComplete(true);
-    }
-  }, [isLoading, user, isGuest]);
+    initializeApp();
+  }, [user, isGuest]);
   
-  if (isLoading || !migrationComplete) {
-    return <LoadingScreen />;
+  if (isLoading || !appReady) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#6AAA64" />
+      </View>
+    );
   }
   
   return (
@@ -126,7 +103,31 @@ function LayoutContent() {
           headerRight: () => <ProfileButton />,
           headerTitle: '',
         }}
-      />
+      >
+        <Tabs.Screen
+          name="game"
+          options={{
+            title: 'Game',
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="game-controller" size={size} color={color} />
+            ),
+          }}
+        >
+          {() => <Slot />}
+        </Tabs.Screen>
+        
+        <Tabs.Screen
+          name="leaderboard"
+          options={{
+            title: 'Leaderboard',
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="trophy" size={size} color={color} />
+            ),
+          }}
+        >
+          {() => <Slot />}
+        </Tabs.Screen>
+      </Stack>
     </SafeAreaProvider>
   );
 }

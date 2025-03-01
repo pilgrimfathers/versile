@@ -23,6 +23,8 @@ import {
   hasCompletedPlayingToday as checkCompletedToday,
 } from '../utils/firestore';
 import { useAuth } from '../context/AuthContext';
+import GameOver from '../components/GameOver';
+import { calculateGameScore } from '../utils/leaderboard';
 
 const MAX_ATTEMPTS = 6;
 const INTRO_SHOWN_KEY = 'quranic_wordle_intro_shown';
@@ -59,6 +61,7 @@ function GameScreen() {
   const [gameOver, setGameOver] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showGameOver, setShowGameOver] = useState(false);
+  const [gameScore, setGameScore] = useState(0);
   const [isPlayedStatusLoaded, setIsPlayedStatusLoaded] = useState(false);
 
   const colors = useColors();
@@ -231,6 +234,11 @@ function GameScreen() {
       const success = isCorrectWord;
       gameState.gameOver = true;
 
+      // Calculate score
+      const currentStreak = user?.streak || 0;
+      const score = calculateGameScore(newGuesses.length, success, currentStreak);
+      setGameScore(score);
+      
       // Update user progress in Firebase
       await updateUserProgress(currentWord.id, newGuesses.length, success);
       
@@ -250,7 +258,9 @@ function GameScreen() {
 
   const handleGameOverClose = () => {
     setShowGameOver(false);
-    setShowWordDetails(true);
+    if (currentWord) {
+      setShowWordDetails(true);
+    }
   };
 
   const hasCompletedPlayingToday = async () => {
@@ -516,7 +526,7 @@ function GameScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background[theme] }]}>
       <Stack.Screen
         options={{
           headerTitle: () => <HeaderLogo />,
@@ -629,30 +639,20 @@ function GameScreen() {
 
           <Modal
             visible={showGameOver}
-            animationType="slide"
             transparent={true}
+            animationType="fade"
             onRequestClose={handleGameOverClose}
           >
-            <View style={styles.centeredView}>
-              <View style={styles.modalView}>
-                <TouchableOpacity style={styles.closeButton} onPress={handleGameOverClose}>
-                  <Text style={styles.closeButtonText}>×</Text>
-                </TouchableOpacity>
-
-                <Text style={styles.gameOverTitle}>Game Over!</Text>
-                <Text style={styles.answerText}>
-                  The word was: <Text style={styles.wordText}>{currentWord?.id.toUpperCase()}</Text>
-                </Text>
-                <Text style={styles.arabicWord}>{currentWord?.arabic_word}</Text>
-                <Text style={styles.transliteration}>{currentWord?.transliteration}</Text>
-
-                <TouchableOpacity 
-                  style={styles.detailsButton}
-                  onPress={handleGameOverClose}
-                >
-                  <Text style={styles.detailsButtonText}>View Word Details</Text>
-                </TouchableOpacity>
-              </View>
+            <View style={[styles.centeredView, { backgroundColor: colors.modal.overlay }]}>
+              <GameOver
+                success={guesses.length > 0 && currentWord ? 
+                  guesses[guesses.length - 1].every(g => g.status === 'correct') : 
+                  false}
+                word={currentWord?.id || ''}
+                attempts={guesses.length}
+                score={gameScore}
+                onClose={handleGameOverClose}
+              />
             </View>
           </Modal>
         </View>

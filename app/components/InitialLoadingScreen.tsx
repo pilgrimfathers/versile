@@ -14,7 +14,7 @@ const InitialLoadingScreen = () => {
       </View>
       <ActivityIndicator 
         size="large" 
-        color="#4285F4" 
+        color="#6AAA64"
         style={styles.spinner} 
       />
     </View>

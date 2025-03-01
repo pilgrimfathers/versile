@@ -24,6 +24,11 @@ export interface User {
   streak: number;
   last_played: string;
   guessed_words: string[];
+  total_score: number;
+  current_week_score: number;
+  best_week_score: number;
+  longest_streak: number;
+  last_week_start: string;
 }
 
 export interface GameSession {
@@ -32,6 +37,7 @@ export interface GameSession {
   word: string;
   attempts: number;
   success: boolean;
+  score: number;
 }
 
 export interface GuessResult {
@@ -44,6 +50,26 @@ export interface GameState {
   letterStates: Record<string, GuessResult['status']>;
   gameOver: boolean;
   showWordDetails: boolean;
+}
+
+export interface WeeklyScore {
+  user_id: string;
+  week_start: string;
+  week_end: string;
+  score: number;
+  games_played: number;
+  games_won: number;
+  best_streak: number;
+}
+
+export interface LeaderboardEntry {
+  user_id: string;
+  username: string;
+  score: number;
+  rank: number;
+  games_played: number;
+  games_won: number;
+  best_streak: number;
 }
 
 export type Theme = 'light' | 'dark';

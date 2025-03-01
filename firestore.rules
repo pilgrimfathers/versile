@@ -38,6 +38,18 @@ service cloud.firestore {
       allow read, write: if request.auth != null && sessionId.matches(request.auth.uid + ".*");
     }
     
+    // Weekly scores - allow read for everyone, write only for the user's own score
+    match /weekly_scores/{scoreId} {
+      allow read: if true;
+      allow write: if request.auth != null && scoreId.matches(request.auth.uid + ".*");
+    }
+    
+    // Guest weekly scores - allow read for everyone, write only for the guest's own score
+    match /guest_weekly_scores/{scoreId} {
+      allow read: if true;
+      allow write: if request.auth != null && scoreId.matches(request.auth.uid + ".*");
+    }
+    
     // Anonymous preferences - allow anyone to read/write
     match /anonymous/{docId} {
       allow read, write: if true;
