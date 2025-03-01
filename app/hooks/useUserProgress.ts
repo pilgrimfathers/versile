@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User, GameSession } from '../types';
 import { useAuth } from '../context/AuthContext';
+import { 
+  createOrUpdateGuestData, 
+  saveGameSession, 
+  updateUserData 
+} from '../utils/firestore';
 
 export default function useUserProgress() {
   const [loading, setLoading] = useState(true);
@@ -11,19 +15,15 @@ export default function useUserProgress() {
   
   const initializeGuestUser = async () => {
     try {
-      // Get stored guest ID
-      let guestId = await AsyncStorage.getItem('guest_id');
-      
-      if (!guestId) {
-        // Create new guest ID if not exists
-        guestId = `guest_${Date.now()}`;
-        await AsyncStorage.setItem('guest_id', guestId);
+      // Get stored guest ID from auth context
+      // The guest ID is now managed by the auth context
+      if (isGuest) {
+        return user?.id || '';
       }
-      
-      return guestId;
+      return '';
     } catch (error) {
       console.error('Error initializing guest user:', error);
-      return `guest_${Date.now()}`;
+      return '';
     }
   };
 
@@ -31,12 +31,10 @@ export default function useUserProgress() {
     try {
       const today = new Date().toISOString().split('T')[0];
       
-      if (user) {
+      if (user && !isGuest) {
         // Authenticated user - save progress to Firestore
-        const userRef = doc(db, 'users', user.id);
         
         // Create game session
-        const sessionRef = doc(db, 'game_sessions', `${user.id}_${today}`);
         const sessionData: GameSession = {
           user_id: user.id,
           date: today,
@@ -44,7 +42,7 @@ export default function useUserProgress() {
           attempts,
           success
         };
-        await setDoc(sessionRef, sessionData);
+        await saveGameSession(user.id, sessionData, false);
 
         // Update user progress
         const updates: Partial<User> = {
@@ -72,30 +70,39 @@ export default function useUserProgress() {
           updates.streak = 0;
         }
 
-        await updateDoc(userRef, updates);
-      } else if (isGuest) {
-        // Guest user - save progress to AsyncStorage
-        const guestId = await initializeGuestUser();
+        await updateUserData(user.id, updates);
+      } else if (isGuest && user) {
+        // Guest user - save progress to Firestore's guests collection
+        const guestId = user.id;
         
-        // Save game session locally
-        const sessionKey = `session_${guestId}_${today}`;
-        const sessionData = {
+        // Save game session
+        const sessionData: GameSession = {
+          user_id: guestId,
           date: today,
           word: wordId,
           attempts,
           success
         };
-        await AsyncStorage.setItem(sessionKey, JSON.stringify(sessionData));
+        await saveGameSession(guestId, sessionData, true);
         
-        // Update guest progress
-        let guestProgress = await AsyncStorage.getItem(`progress_${guestId}`);
-        let progress = guestProgress ? JSON.parse(guestProgress) : {
-          last_played: '',
+        // Get current guest progress
+        const guestRef = doc(db, 'guests', guestId);
+        const guestDoc = await getDoc(guestRef);
+        
+        let progress = {
+          last_played: today,
           streak: 0,
-          guessed_words: []
+          guessed_words: [] as string[]
         };
         
-        progress.last_played = today;
+        if (guestDoc.exists()) {
+          const guestData = guestDoc.data();
+          progress = {
+            last_played: today,
+            streak: guestData.streak || 0,
+            guessed_words: guestData.guessed_words || []
+          };
+        }
         
         if (success) {
           progress.guessed_words = [...progress.guessed_words, wordId];
@@ -118,7 +125,7 @@ export default function useUserProgress() {
           progress.streak = 0;
         }
         
-        await AsyncStorage.setItem(`progress_${guestId}`, JSON.stringify(progress));
+        await createOrUpdateGuestData(guestId, progress);
       }
     } catch (error) {
       console.error('Error updating user progress:', error);

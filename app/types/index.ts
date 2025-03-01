@@ -39,6 +39,13 @@ export interface GuessResult {
   status: 'correct' | 'present' | 'absent' | 'unused';
 }
 
+export interface GameState {
+  guesses: GuessResult[][];
+  letterStates: Record<string, GuessResult['status']>;
+  gameOver: boolean;
+  showWordDetails: boolean;
+}
+
 export type Theme = 'light' | 'dark';
 
 export interface ColorScheme {

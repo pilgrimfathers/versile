@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack } from 'expo-router';
 import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
@@ -16,6 +15,14 @@ import useColors from '../hooks/useColors';
 import useUserProgress from '../hooks/useUserProgress';
 import { GameSession, GuessResult, QuranicWord } from '../types';
 import { getTodayWordIndex } from '../utils/wordIndex';
+import { 
+  saveGameState, 
+  getGameState, 
+  saveUserPreference, 
+  getUserPreference,
+  hasCompletedPlayingToday as checkCompletedToday,
+} from '../utils/firestore';
+import { useAuth } from '../context/AuthContext';
 
 const MAX_ATTEMPTS = 6;
 const INTRO_SHOWN_KEY = 'quranic_wordle_intro_shown';
@@ -39,6 +46,10 @@ interface GameState {
 export default GameScreen;
 
 function GameScreen() {
+  const { theme, toggleTheme } = useTheme();
+  const { user, isGuest } = useAuth();
+  const { updateUserProgress } = useUserProgress();
+  
   const [currentWord, setCurrentWord] = useState<QuranicWord | null>(null);
   const [guesses, setGuesses] = useState<GuessResult[][]>([]);
   const [currentGuess, setCurrentGuess] = useState<string>('');
@@ -50,40 +61,36 @@ function GameScreen() {
   const [showGameOver, setShowGameOver] = useState(false);
   const [isPlayedStatusLoaded, setIsPlayedStatusLoaded] = useState(false);
 
-  const { theme, toggleTheme } = useTheme();
   const colors = useColors();
-  const { user, updateUserProgress, isGuest } = useUserProgress();
 
   useEffect(() => {
     const init = async () => {
       try {
         // Check intro status
-        const introShown = await AsyncStorage.getItem(INTRO_SHOWN_KEY);
+        const userId = user?.id || '';
+        const introShown = await getUserPreference(userId, STORAGE_KEYS.INTRO_SHOWN, isGuest);
         if (!introShown) {
           setShowIntro(true);
         }
         
         // Get the last played date from storage
-        const lastPlayedDate = await AsyncStorage.getItem(STORAGE_KEYS.LAST_PLAYED_DATE);
+        const lastPlayedDate = await getUserPreference(userId, STORAGE_KEYS.LAST_PLAYED_DATE, isGuest);
         const today = new Date().toISOString().split('T')[0];
         
         // Clear state if it's a new day
         if (lastPlayedDate !== today) {
-          await AsyncStorage.removeItem(STORAGE_KEYS.GAME_STATE);
-          await AsyncStorage.removeItem(STORAGE_KEYS.LAST_PLAYED_DATE); 
           setGuesses([]);
           setLetterStates({});
           setGameOver(false);
           setShowWordDetails(false);
         } else {
           // Only load saved state if it's the same day
-          const savedState = await AsyncStorage.getItem(STORAGE_KEYS.GAME_STATE);
+          const savedState = await getGameState(userId, isGuest);
           if (savedState) {
-            const state = JSON.parse(savedState) as GameState;
-            setGuesses(state.guesses);
-            setLetterStates(state.letterStates);
-            setGameOver(state.gameOver);
-            setShowWordDetails(state.showWordDetails);
+            setGuesses(savedState.guesses);
+            setLetterStates(savedState.letterStates);
+            setGameOver(savedState.gameOver);
+            setShowWordDetails(savedState.showWordDetails);
           }
         }
         
@@ -98,7 +105,8 @@ function GameScreen() {
 
   const handleIntroClose = async () => {
     setShowIntro(false);
-    await AsyncStorage.setItem(INTRO_SHOWN_KEY, 'true');
+    const userId = user?.id || '';
+    await saveUserPreference(userId, STORAGE_KEYS.INTRO_SHOWN, 'true', isGuest);
   };
 
   const fetchDailyWord = async () => {
@@ -126,27 +134,22 @@ function GameScreen() {
           setShowWordDetails(true);
           
           // If authenticated user, try to load their previous game state from Firebase
-          if (user && !isGuest) {
+          if (user) {
             const today = new Date().toISOString().split('T')[0];
-            const sessionRef = doc(db, 'game_sessions', `${user.id}_${today}`);
-            const sessionDoc = await getDoc(sessionRef);
+            const userId = user.id;
             
-            if (sessionDoc.exists()) {
-              const sessionData = sessionDoc.data() as GameSession;
-              
-              // If we have game state in AsyncStorage, use that
-              const savedState = await AsyncStorage.getItem(STORAGE_KEYS.GAME_STATE);
-              if (!savedState) {
-                // If no local state, create a basic completed state
-                const gameState: GameState = {
-                  guesses: [], // We don't have the actual guesses
-                  letterStates: {},
-                  gameOver: true,
-                  showWordDetails: true
-                };
-                await AsyncStorage.setItem(STORAGE_KEYS.GAME_STATE, JSON.stringify(gameState));
-                await AsyncStorage.setItem(STORAGE_KEYS.LAST_PLAYED_DATE, today);
-              }
+            // Get game state from Firestore
+            const savedState = await getGameState(userId, isGuest);
+            if (!savedState) {
+              // If no state, create a basic completed state
+              const gameState: GameState = {
+                guesses: [], // We don't have the actual guesses
+                letterStates: {},
+                gameOver: true,
+                showWordDetails: true
+              };
+              await saveGameState(userId, gameState, isGuest);
+              await saveUserPreference(userId, STORAGE_KEYS.LAST_PLAYED_DATE, today, isGuest);
             }
           }
         }
@@ -208,7 +211,8 @@ function GameScreen() {
 
     // Set last played date for today on first guess
     const today = new Date().toISOString().split('T')[0];
-    await AsyncStorage.setItem(STORAGE_KEYS.LAST_PLAYED_DATE, today);
+    const userId = user?.id || '';
+    await saveUserPreference(userId, STORAGE_KEYS.LAST_PLAYED_DATE, today, isGuest);
 
     // Check win/lose condition
     const todayIndex = getTodayWordIndex();
@@ -227,11 +231,11 @@ function GameScreen() {
       const success = isCorrectWord;
       gameState.gameOver = true;
 
-      // Update user progress in Firebase and/or AsyncStorage
+      // Update user progress in Firebase
       await updateUserProgress(currentWord.id, newGuesses.length, success);
       
-      // Ensure we set the last played date in AsyncStorage
-      await AsyncStorage.setItem(STORAGE_KEYS.LAST_PLAYED_DATE, today);
+      // Ensure we set the last played date
+      await saveUserPreference(userId, STORAGE_KEYS.LAST_PLAYED_DATE, today, isGuest);
       
       if (success) {
         gameState.showWordDetails = true;
@@ -241,7 +245,7 @@ function GameScreen() {
       }
     }
 
-    await AsyncStorage.setItem(STORAGE_KEYS.GAME_STATE, JSON.stringify(gameState));
+    await saveGameState(userId, gameState, isGuest);
   };
 
   const handleGameOverClose = () => {
@@ -251,37 +255,10 @@ function GameScreen() {
 
   const hasCompletedPlayingToday = async () => {
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const userId = user?.id || '';
+      if (!userId) return false;
       
-      // For authenticated users, check Firebase first
-      if (user && !isGuest) {
-        // Check if there's a game session for today
-        const sessionRef = doc(db, 'game_sessions', `${user.id}_${today}`);
-        const sessionDoc = await getDoc(sessionRef);
-        
-        if (sessionDoc.exists()) {
-          const sessionData = sessionDoc.data() as GameSession;
-          return sessionData.success || false; // If they played and succeeded
-        }
-        
-        // Also check if today's date matches the user's last_played date
-        if (user.last_played === today) {
-          return true;
-        }
-      }
-      
-      // Fallback to AsyncStorage for guest users or if Firebase check fails
-      const lastPlayed = await AsyncStorage.getItem(STORAGE_KEYS.LAST_PLAYED_DATE);
-      
-      // First check if they played today at all
-      if (!lastPlayed || lastPlayed !== today) return false;
-      
-      // Then check if they completed the game
-      const savedState = await AsyncStorage.getItem(STORAGE_KEYS.GAME_STATE);
-      if (!savedState) return false;
-      
-      const gameState = JSON.parse(savedState) as GameState;
-      return gameState.gameOver;
+      return await checkCompletedToday(userId, isGuest);
     } catch (error) {
       console.error('Error checking completion status:', error);
       return false;

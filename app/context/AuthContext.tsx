@@ -9,8 +9,8 @@ import {
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
 import { User } from '../types';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
+import { saveUserPreference, getUserPreference, STORAGE_KEYS } from '../utils/firestore';
 
 interface AuthContextType {
   user: User | null;
@@ -88,7 +88,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       } else {
         // User is signed out
         // Check if guest mode was previously enabled
-        const guestMode = await AsyncStorage.getItem('guest_mode');
+        const guestMode = await getUserPreference('anonymous', 'guest_mode', false);
         if (guestMode === 'true') {
           setIsGuest(true);
           setUser(null);
@@ -106,7 +106,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const signInWithGoogle = async () => {
     try {
-      await AsyncStorage.removeItem('guest_mode');
+      await saveUserPreference('anonymous', 'guest_mode', 'false', false);
       setIsGuest(false);
       
       if (isWeb) {
@@ -129,7 +129,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const signOut = async () => {
     try {
       await firebaseSignOut(auth);
-      await AsyncStorage.removeItem('guest_mode');
+      await saveUserPreference('anonymous', 'guest_mode', 'false', false);
       setUser(null);
       setIsGuest(false);
     } catch (error) {
@@ -139,7 +139,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const playAsGuest = async () => {
     try {
-      await AsyncStorage.setItem('guest_mode', 'true');
+      await saveUserPreference('anonymous', 'guest_mode', 'true', false);
       setIsGuest(true);
       
       // Sign in anonymously to Firebase
@@ -151,19 +151,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        firebaseUser,
-        isAuthenticated: !!user,
-        isLoading,
-        signInWithGoogle,
-        signOut,
-        playAsGuest,
-        isGuest,
-        isWeb
-      }}
-    >
+    <AuthContext.Provider value={{
+      user,
+      firebaseUser,
+      isAuthenticated: !!user && !isGuest,
+      isLoading,
+      signInWithGoogle,
+      signOut,
+      playAsGuest,
+      isGuest,
+      isWeb
+    }}>
       {children}
     </AuthContext.Provider>
   );
