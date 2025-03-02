@@ -191,15 +191,6 @@ function GameScreen() {
           return;
         }
         
-        // Log the received word data for debugging
-        console.log('Word data received:', JSON.stringify({
-          id: wordData.id || wordDoc.id,
-          arabic_word: wordData.arabic_word,
-          transliteration: wordData.transliteration,
-          english_translation: wordData.english_translation,
-          index: wordData.index
-        }));
-        
         // Use document ID as the word ID if not provided in the data
         const wordId = wordData.id || wordDoc.id;
         
@@ -227,9 +218,6 @@ function GameScreen() {
           occurrences: wordData.occurrences || [],
           index: wordData.index || 0
         });
-        
-        // Log successful word loading
-        console.log(`Successfully loaded word: ${wordId} (index: ${wordData.index})`);
         
         // Save today's date to localStorage
         const today = new Date().toISOString().split('T')[0];
