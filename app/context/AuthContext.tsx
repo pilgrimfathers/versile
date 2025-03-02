@@ -151,6 +151,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const signInWithGoogle = async () => {
     try {
       console.log('AuthContext: signInWithGoogle called');
+      // Set loading state to true
+      setIsLoading(true);
+      
       // Save guest mode preference to localStorage only
       await saveToLocalStorage(LOCAL_STORAGE_KEYS.GUEST_MODE, false);
       setIsGuest(false);
@@ -171,6 +174,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             // @ts-ignore
             const result = await signInWithPopup(auth, provider);
             console.log('AuthContext: Sign in successful', result?.user?.uid);
+            // Loading state will be set to false by the auth state change listener
           } catch (popupError: any) {
             console.warn('AuthContext: Popup failed, trying redirect', popupError);
             
@@ -182,21 +186,25 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               await saveToLocalStorage(LOCAL_STORAGE_KEYS.AUTH_IN_PROGRESS, true);
               // @ts-ignore
               await signInWithRedirect(auth, provider);
+              // Note: Loading state will remain true until redirect completes and auth state changes
             } else {
               // For other errors, fall back to guest mode
               console.error('AuthContext: Unhandled Google sign-in error:', popupError);
               await playAsGuest();
+              // Loading state will be set to false by the auth state change listener
             }
           }
         } catch (authError) {
           console.error('AuthContext: Error with Google sign-in:', authError);
           // Fallback to guest mode
           await playAsGuest();
+          // Loading state will be set to false by the auth state change listener
         }
       } else {
         // For mobile, automatically use guest mode
         console.log('AuthContext: Mobile platform detected, using guest mode');
         await playAsGuest();
+        // Loading state will be set to false by the auth state change listener
       }
     } catch (error) {
       console.error('AuthContext: Google sign in error:', error);
@@ -218,15 +226,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const playAsGuest = async () => {
     try {
+      // Set loading state to true
+      setIsLoading(true);
+      
       // Save guest mode preference to localStorage only
       await saveToLocalStorage(LOCAL_STORAGE_KEYS.GUEST_MODE, true);
       setIsGuest(true);
       
       // Sign in anonymously to Firebase
       await signInAnonymously(auth);
+      // Loading state will be set to false by the auth state change listener
       
     } catch (error) {
       console.error('Play as guest error:', error);
+      setIsLoading(false);
     }
   };
 
