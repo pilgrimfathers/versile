@@ -26,6 +26,7 @@ import { useAuth } from '../context/AuthContext';
 import GameOver from '../components/GameOver';
 import { calculateGameScore } from '../utils/leaderboard';
 import { saveToLocalStorage, getFromLocalStorage, LOCAL_STORAGE_KEYS } from '../utils/localStorage';
+import ProfileModal from '../components/ProfileModal';
 
 const MAX_ATTEMPTS = 6;
 
@@ -63,7 +64,7 @@ function GameScreen() {
   const [showGameOver, setShowGameOver] = useState(false);
   const [gameScore, setGameScore] = useState(0);
   const [hasCompletedToday, setHasCompletedToday] = useState(false);
-
+  const [detailsUpdateModalVisible, setDetailsUpdateModalVisible] = useState(false);
   const colors = useColors();
 
   useEffect(() => {
@@ -470,6 +471,9 @@ function GameScreen() {
   };
 
   const styles = StyleSheet.create({
+    profile: {
+      marginLeft: 10,
+    },
     safeArea: {
       flex: 1,
       backgroundColor: colors.background[theme],
@@ -697,12 +701,22 @@ function GameScreen() {
                     color={colors.header.text[theme]} 
                   />
                 </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setDetailsUpdateModalVisible(true)}
+                >
+                  <Ionicons 
+                    style={styles.profile}
+                    name="person-circle-outline" 
+                    size={24} 
+                    color={colors.header.text[theme]} 
+                  />
+                </TouchableOpacity>
                 <TouchableOpacity 
                   onPress={toggleTheme} 
                   style={{ marginLeft: 10, marginRight: 10 }}
                 >
                   <Ionicons 
-                    name={theme === 'light' ? 'moon' : 'sunny'} 
+                    name={theme === 'light' ? 'moon-outline' : 'sunny'} 
                     size={24} 
                     color={colors.header.text[theme]} 
                   />
@@ -741,12 +755,22 @@ function GameScreen() {
                     color={colors.header.text[theme]} 
                   />
                 </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setDetailsUpdateModalVisible(true)}
+                >
+                  <Ionicons 
+                    style={styles.profile}
+                    name="person-circle-outline" 
+                    size={24} 
+                    color={colors.header.text[theme]} 
+                  />
+                </TouchableOpacity>
                 <TouchableOpacity 
                   onPress={toggleTheme} 
                   style={{ marginRight: 15 }}
                 >
                   <Ionicons 
-                    name={theme === 'light' ? 'moon' : 'sunny'} 
+                    name={theme === 'light' ? 'moon-outline' : 'sunny'} 
                     size={24} 
                     color={colors.header.text[theme]} 
                   />
@@ -801,12 +825,22 @@ function GameScreen() {
                   color={colors.header.text[theme]} 
                 />
               </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setDetailsUpdateModalVisible(true)}
+              >
+                <Ionicons 
+                  style={styles.profile}
+                  name="person-circle-outline" 
+                  size={24} 
+                  color={colors.header.text[theme]} 
+                />
+              </TouchableOpacity>
               <TouchableOpacity 
                 onPress={toggleTheme} 
                 style={{ marginLeft: 10, marginRight: 10 }}
               >
                 <Ionicons 
-                  name={theme === 'light' ? 'moon' : 'sunny'} 
+                  name={theme === 'light' ? 'moon-outline' : 'sunny'} 
                   size={24} 
                   color={colors.header.text[theme]} 
                 />
@@ -912,6 +946,11 @@ function GameScreen() {
               />
             </View>
           </Modal>
+
+          <ProfileModal
+            visible={detailsUpdateModalVisible}
+            onClose={() => setDetailsUpdateModalVisible(false)}
+          />
         </View>
       </View>
     </SafeAreaView>
