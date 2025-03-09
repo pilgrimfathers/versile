@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
+import { useState } from 'react';
 import { db } from '../config/firebase';
-import { User, GameSession } from '../types';
 import { useAuth } from '../context/AuthContext';
-import { 
-  createOrUpdateGuestData, 
-  saveGameSession, 
-  updateUserData 
+import { GameSession, User } from '../types';
+import {
+  createOrUpdateGuestData,
+  saveGameSession,
+  updateUserData
 } from '../utils/firestore';
-import { calculateGameScore, updateWeeklyScore, getCurrentWeekDates, getFormattedDate } from '../utils/leaderboard';
+import { calculateGameScore, getCurrentWeekDates, getFormattedDate, updateWeeklyScore } from '../utils/leaderboard';
 
 export default function useUserProgress() {
   const [loading, setLoading] = useState(true);
@@ -35,26 +35,24 @@ export default function useUserProgress() {
       
       // Calculate new streak first
       let newStreak = 0;
-      const lastPlayed = user?.last_played ? new Date(user.last_played) : null;
+      const lastPlayed = user?.last_played;
       if (success && lastPlayed) {
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayString = yesterday.toISOString().split('T')[0];
-        const lastPlayedString = lastPlayed.toISOString().split('T')[0];
+        const yesterdayString = getFormattedDate(yesterday);
         
-        if (lastPlayedString === yesterdayString) {
+        if (lastPlayed === yesterdayString) {
           // If last played was yesterday, increment streak
           newStreak = (user?.streak || 0) + 1;
         } else {
-          // Check if last played was today (same day submission)
-          const today = new Date();
-          const todayString = today.toISOString().split('T')[0];
+          // Check if last played was today
+          const todayString = getFormattedDate(new Date());
           
-          if (lastPlayedString === todayString) {
+          if (lastPlayed === todayString) {
             // If already played today, maintain current streak
             newStreak = user?.streak || 0;
           } else {
-            // If there was a gap (not yesterday and not today), reset streak to 1
+            // If there was a gap, reset streak to 1
             newStreak = 1;
           }
         }
