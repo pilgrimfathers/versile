@@ -55,7 +55,7 @@ const GameOver: React.FC<GameOverProps> = ({
     
     // Add score and link
     shareText += `\nScore: ${score}\n`;
-    shareText += `\nPlay Versile: https://versile.app`;
+    shareText += `\nPlay Versile: https://versile.keralastudentsconference.com`;
     
     return shareText;
   };
