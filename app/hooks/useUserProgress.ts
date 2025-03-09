@@ -39,14 +39,31 @@ export default function useUserProgress() {
       if (success && lastPlayed) {
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayString = yesterday.toISOString().split('T')[0];
+        const lastPlayedString = lastPlayed.toISOString().split('T')[0];
         
-        if (lastPlayed.toISOString().split('T')[0] === yesterday.toISOString().split('T')[0]) {
+        if (lastPlayedString === yesterdayString) {
+          // If last played was yesterday, increment streak
           newStreak = (user?.streak || 0) + 1;
         } else {
-          newStreak = 1;
+          // Check if last played was today (same day submission)
+          const today = new Date();
+          const todayString = today.toISOString().split('T')[0];
+          
+          if (lastPlayedString === todayString) {
+            // If already played today, maintain current streak
+            newStreak = user?.streak || 0;
+          } else {
+            // If there was a gap (not yesterday and not today), reset streak to 1
+            newStreak = 1;
+          }
         }
       } else if (success) {
+        // First time playing or no last played date
         newStreak = 1;
+      } else {
+        // Failed challenge
+        newStreak = 0;
       }
       
       // Calculate score with new streak
