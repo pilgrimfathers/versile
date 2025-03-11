@@ -1,11 +1,13 @@
 import React from 'react';
-import { View, StyleSheet, Image, Platform } from 'react-native';
+import { View, StyleSheet, Image, Platform, Dimensions } from 'react-native';
 
 const HeaderLogo = () => {
+  const platformWidth = Dimensions.get('window').width;
+  const isMobile = platformWidth < 768;
   return (
     <View style={styles.container}>
       <Image 
-        source={require('../../assets/images/headerLogo.png')}
+        source={isMobile ? require('../../assets/images/icon.png') : require('../../assets/images/headerLogo.png')}
         style={styles.image}
       />
     </View>
